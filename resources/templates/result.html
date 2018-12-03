@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Search Results</title>
+    <link rel="stylesheet" type="text/css" href="/Semantic-UI-1.0/dist/semantic.min.css">
+    <script
+            src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+            crossorigin="anonymous"></script>
+    <script src="/Semantic-UI-1.0/dist/semantic.min.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+</head>
+<body onload="scrape.scrapeHomeDeport();">
+<h2 class="ui header" style="margin-top: 10px;margin-left: 10px; z-index: 0">
+    Akvasoft Solutions
+    <div class="sub header">something something something write here</div>
+</h2>
+<h4 class="ui horizontal divider header" style="margin-top: 10px">
+    <i class="tag icon"></i>
+    https://www.homedepot.com/
+</h4>
+<table class="ui teal table" id="homedepot">
+    <thead>
+    <tr>
+        <th>Product Link</th>
+        <th>Vendor Price</th>
+        <th>Shipping Cost</th>
+        <th>COGS</th>
+        <th>Profit</th>
+        <th>Margin</th>
+        <th>roi</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td style="text-align: center">
+            <div class="ui mini active centered inline loader"></div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h4 class="ui horizontal divider header" style="margin-top: 10px">
+    <i class="tag icon"></i>
+    https://www.overstock.com/
+</h4>
+<table class="ui teal table" id="overstock">
+    <thead>
+    <tr>
+        <th>Product Link</th>
+        <th>Vendor Price</th>
+        <th>Shipping Cost</th>
+        <th>COGS</th>
+        <th>Profit</th>
+        <th>Margin</th>
+        <th>roi</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td style="text-align: center">
+            <div class="ui mini active centered inline loader"></div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h4 class="ui horizontal divider header" style="margin-top: 10px">
+    <i class="tag icon"></i>
+    https://www.bedbathandbeyond.com/
+</h4>
+<table class="ui teal table" id="bedbat">
+    <thead>
+    <tr>
+        <th>Product Link</th>
+        <th>Vendor Price</th>
+        <th>Shipping Cost</th>
+        <th>COGS</th>
+        <th>Profit</th>
+        <th>Margin</th>
+        <th>roi</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td style="text-align: center">
+            <div class="ui mini active centered inline loader"></div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<h4 class="ui horizontal divider header" style="margin-top: 10px">
+    <i class="tag icon"></i>
+    https://www.walmart.com/
+</h4>
+<table class="ui teal table" id="walmart">
+    <thead>
+    <tr>
+        <th>Product Link</th>
+        <th>Vendor Price</th>
+        <th>Shipping Cost</th>
+        <th>COGS</th>
+        <th>Profit</th>
+        <th>Margin</th>
+        <th>roi</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td style="text-align: center">
+            <div class="ui mini active centered inline loader"></div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<script type="text/javascript" src='/Semantic-UI-1.0/appJs.js'></script>
+<script src="/Semantic-UI-1.0/session/jquery.session.js"></script>
+</body>
+</html>
