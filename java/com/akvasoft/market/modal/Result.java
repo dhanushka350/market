@@ -1,13 +1,70 @@
 package com.akvasoft.market.modal;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "result")
 public class Result {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
+    private int id;
+    @Column(name = "amazon_link")
+    private String amazonLink;
+    @Column(name = "code")
+    private String code;
+    @Column(name = "website")
+    private String website;
+    @Column(name = "product_link")
     private String productlink;
+    @Column(name = "vendor_price")
     private String vendorprice;
+    @Column(name = "shipping_cost")
     private String shippingcost;
+    @Column(name = "cogs")
     private String cogs;
+    @Column(name = "profit")
     private String profit;
+    @Column(name = "margin")
     private String margin;
+    @Column(name = "roi")
     private String roi;
+    @Column(name = "search_date")
+    private String date;
+
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getAmazonLink() {
+        return amazonLink;
+    }
+
+    public void setAmazonLink(String amazonLink) {
+        this.amazonLink = amazonLink;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
 
     public String getProductlink() {
         return productlink;
@@ -63,5 +120,13 @@ public class Result {
 
     public void setRoi(String roi) {
         this.roi = roi;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 }

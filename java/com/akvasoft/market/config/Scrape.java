@@ -2,11 +2,16 @@ package com.akvasoft.market.config;
 
 import com.akvasoft.market.common.calculations;
 import com.akvasoft.market.modal.Result;
+import com.akvasoft.market.repo.ResultRepo;
 import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -16,6 +21,9 @@ public class Scrape {
     private static String codes[] = {"Products"};
     private static HashMap<String, String> handlers = new HashMap<>();
     JavascriptExecutor jse = (JavascriptExecutor) driver;
+
+    @Autowired
+    private ResultRepo repo;
 
     public String initialize() throws InterruptedException {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
@@ -33,20 +41,13 @@ public class Scrape {
             handlers.put(codes[i], windowsHandles.get(i));
         }
 
-//        findAmasonLink("B006YSCA8C");
-//        scrapeHomeDepot("ARM & HAMMER Clumping Litter Ultra Last 40lb");
-//        scrapeOverStock("Arm & Hammer Clump & Seal Multi-cat Light Litter");
-//        scrapeBedBath("Arm & Hammer Clump & Seal Multi-cat Light Litter");
-//        scrapeWalmart("Majik 3-in-1 Arcade Sport Center, Basketball, Football, & Baseball");
         return "driver initialized";
     }
 
-    public List<Result> scrapeWalmart(String item,String amasonPrice,String code) throws InterruptedException {
-        System.out.println("scraping wallmart?????????????????????????????????????????????????????????????????????????????");
-        System.out.println("scraping wallmart?????????????????????????????????????????????????????????????????????????????");
-        System.out.println("scraping wallmart?????????????????????????????????????????????????????????????????????????????");
-        System.out.println("scraping wallmart?????????????????????????????????????????????????????????????????????????????");
-        System.out.println("scraping wallmart?????????????????????????????????????????????????????????????????????????????");
+    public List<Result> scrapeWalmart(String item, String amasonPrice, String code) throws InterruptedException {
+        Date date = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+
         calculations calculations = new calculations();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         List<Result> res = new ArrayList<>();
@@ -85,7 +86,12 @@ public class Scrape {
                     result.setRoi(roi);
                     result.setShippingcost(shipping_cost);
                     result.setVendorprice(vendor_price);
+                    result.setCode(code);
+                    result.setWebsite("https://www.walmart.com/");
+                    result.setDate(dateFormat.format(date));
+                    result.setAmazonLink("https://www.amazon.com/dp/" + code);
                     res.add(result);
+                    repo.save(result);
 
                     System.out.println(product_link);
                     System.out.println(vendor_price);
@@ -112,11 +118,12 @@ public class Scrape {
             break;
 
         }
-        driver.close();
         return res;
     }
 
-    public List<Result> scrapeBedBath(String item,String amasonPrice,String code) throws InterruptedException {
+    public List<Result> scrapeBedBath(String item, String amasonPrice, String code) throws InterruptedException {
+        Date date = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         calculations calculations = new calculations();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         List<Result> res = new ArrayList<>();
@@ -218,7 +225,13 @@ public class Scrape {
                 result.setRoi(roi);
                 result.setShippingcost(shipping_cost);
                 result.setVendorprice(vendor_price);
+                result.setCode(code);
+                result.setWebsite("https://www.bedbathandbeyond.com/");
+                result.setDate(dateFormat.format(date));
+                result.setAmazonLink("https://www.amazon.com/dp/" + code);
                 res.add(result);
+                repo.save(result);
+
                 System.out.println(product_link);
                 System.out.println(vendor_price);
                 System.out.println(shipping_cost);
@@ -231,11 +244,12 @@ public class Scrape {
 
             break;
         }
-        driver.close();
         return res;
     }
 
-    public List<Result> scrapeOverStock(String item,String amasonPrice,String code) throws InterruptedException {
+    public List<Result> scrapeOverStock(String item, String amasonPrice, String code) throws InterruptedException {
+        Date date = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         driver.get("https://www.overstock.com/");
         Thread.sleep(5000);
         WebElement countryChange = driver.findElementByXPath("/html/body/div[1]/div[1]/header/nav/div[1]/div/div[2]/a");
@@ -305,7 +319,12 @@ public class Scrape {
                     result1.setRoi(roi);
                     result1.setShippingcost(shipping_cost);
                     result1.setVendorprice(vendor_price);
+                    result1.setCode(code);
+                    result1.setWebsite("https://www.overstock.com/");
+                    result1.setDate(dateFormat.format(date));
+                    result1.setAmazonLink("https://www.amazon.com/dp/" + code);
                     res.add(result1);
+                    repo.save(result1);
 
                     System.out.println("UPC CODE = ");
                     System.out.println("AMAZON LINK = ");
@@ -328,11 +347,13 @@ public class Scrape {
             item = item.substring(0, item.lastIndexOf(" "));
             System.out.println("SEARCHING ITEM = " + item);
         }
-        driver.close();
+
         return res;
     }
 
-    public List<Result> scrapeHomeDepot(String item,String amasonPrice,String code) throws InterruptedException {
+    public List<Result> scrapeHomeDepot(String item, String amasonPrice, String code) throws InterruptedException {
+        Date date = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         driver.get("https://www.homedepot.com/");
         List<Result> res = new ArrayList<>();
         calculations calculations = new calculations();
@@ -378,7 +399,12 @@ public class Scrape {
                     result1.setRoi(roi);
                     result1.setShippingcost(shipping_cost);
                     result1.setVendorprice(vendor_price);
+                    result1.setCode(code);
+                    result1.setWebsite("https://www.homedepot.com/");
+                    result1.setDate(dateFormat.format(date));
+                    result1.setAmazonLink("https://www.amazon.com/dp/" + code);
                     res.add(result1);
+                    repo.save(result1);
 
                     System.out.println("UPC CODE = ");
                     System.out.println("AMAZON LINK = ");
@@ -433,7 +459,12 @@ public class Scrape {
                         result.setRoi(roi);
                         result.setShippingcost(shipping_cost);
                         result.setVendorprice(vendor_price);
+                        result.setCode(code);
+                        result.setWebsite("https://www.homedepot.com/");
+                        result.setDate(dateFormat.format(date));
+                        result.setAmazonLink("https://www.amazon.com/dp/" + code);
                         res.add(result);
+                        repo.save(result);
 
                         System.out.println("UPC CODE = ");
                         System.out.println("AMAZON LINK = ");
@@ -458,22 +489,23 @@ public class Scrape {
             System.out.println("SEARCHING ITEM = " + item);
         }
         System.out.println(res.size() + "|||||||||||||||||||||||");
-        driver.close();
+
         return res;
     }
 
-    private String findAmasonLink(String item) throws InterruptedException {
-        driver.get("http://www.amazon-asin.com/asincheck/");
-        WebElement searchBox = driver.findElementByXPath("/html/body/div[1]/section/div/div/form/div/input");
+    public String findAmasonLink(String item) throws InterruptedException {
+        driver.get("https://www.amazon.com/");
+        WebElement searchBox = driver.findElementByXPath("//*[@id=\"twotabsearchtextbox\"]");
         searchBox.clear();
         searchBox.sendKeys(item);
+        searchBox.sendKeys(Keys.ENTER);
 
-        WebElement searchButton = driver.findElementByXPath("/html/body/div[1]/section/div/div/form/div/span");
-        searchButton.click();
-
-        Thread.sleep(3000);
-        WebElement view = driver.findElementByXPath("/html/body/div[1]/div[1]/div[1]/section[2]/div/div[1]/div/div[2]/div/div[2]/div/div[5]/div/a");
-        String link = view.getAttribute("href");
-        return link;
+        Thread.sleep(20000);
+        String href = driver.findElementByXPath("/html/body/div[1]/div[1]/div/div[3]/div[2]/div/div[4]/div[1]/div/ul/li/div/div/div/div[2]").findElement(By.tagName("a")).getAttribute("href");
+//        driver.get(href);
+//        Thread.sleep(20000);
+        String price = driver.findElementByXPath("/html/body/div[1]/div[1]/div/div[3]/div[2]/div/div[4]/div[1]/div/ul/li/div/div/div/div[2]/div[3]/div[1]/div/a/span[1]").getAttribute("innerText");
+        System.out.println(href);
+        return "https://www.amazon.com/dp/" + item + "  " + price;
     }
 }

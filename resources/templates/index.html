@@ -23,15 +23,15 @@
 <div class="row" style="margin-left: 50px;margin-right: 50px; margin-top: 20%">
     <div class="ui form" style=" width: 100%">
         <div class="three fields">
-            <div class="field error">
-                <input placeholder="UPC Code Disabled" disabled="disabled" type="text" id="code">
+            <div class="field">
+                <input placeholder="UPC Code" type="text" id="code">
             </div>
             <div class="field">
                 <input placeholder="Product Name" type="text" id="name"
                        value="ARM & HAMMER Clumping Litter Ultra Last 40lb">
             </div>
             <div class="field">
-                <input placeholder="Amazon Price" type="text" id="price" value="$58.20">
+                <input placeholder="Amazon Price" type="text" id="price" disabled="disabled">
             </div>
         </div>
     </div>
@@ -73,6 +73,9 @@
         <i class="right arrow icon"></i>
     </div>
 </div>
+<br>
+<h6 class="ui teal header" style="font-weight: bold; margin-left: 44%; margin-top: 10px;" id="message" hidden="hidden">
+    waiting for amazon price.</h6>
 </body>
 <script type="text/javascript" src='/Semantic-UI-1.0/indexJs.js'></script>
 <script src="/Semantic-UI-1.0/session/jquery.session.js"></script>

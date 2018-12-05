@@ -66,6 +66,19 @@ public class Scraper implements InitializingBean {
         return null;
     }
 
+    @RequestMapping(value = {"/scrape/amazon/price"}, method = RequestMethod.POST)
+    @ResponseBody
+    private String scrapeAmazonPrice(@RequestBody Item item) {
+        Scrape scrape = new Scrape();
+        try {
+            System.out.println(scrape.initialize());
+            return scrape.findAmasonLink(item.getCode());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
 //        this.scrape();

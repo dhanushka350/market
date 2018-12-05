@@ -1,11 +1,18 @@
 var scrape = {
 
+    setAmazonInfo: function () {
+        var link = $.session.get("LINK");
+        var price = $.session.get("PRICE");
+
+        document.getElementById("link").innerText = "Amazon Link - " + link;
+        document.getElementById("price").innerText = "Amazon Price - " + price;
+    },
     scrapeHomeDeport: function () {
         var e = {};
 
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
-        e["price"] = $.session.get("price");
+        e["price"] = $.session.get("PRICE");
 
         // e["code"] = "123";
         // e["name"] = "ARM & HAMMER Clumping Litter Ultra Last 40lb";
@@ -24,7 +31,7 @@ var scrape = {
                 $('#homedepot tbody tr td').remove();
                 if (data.length <= 0) {
                     $('#homedepot').append('<tr>\n\
-                               <td colspan=9><p align="center">No records found in your database\n\
+                               <td colspan=9><p align="center">No records found in this site\n\
                                </p></td>\n\
                                </tr>');
                 } else {
@@ -55,7 +62,7 @@ var scrape = {
         var e = {};
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
-        e["price"] = $.session.get("price");
+        e["price"] = $.session.get("PRICE");
 
         // e["code"] = "123";
         // e["name"] = "ARM & HAMMER Clumping Litter Ultra Last 40lb";
@@ -74,7 +81,7 @@ var scrape = {
                 $('#overstock tbody tr td').remove();
                 if (data.length <= 0) {
                     $('#overstock').append('<tr>\n\
-                               <td colspan=9><p align="center">No records found in your database\n\
+                               <td colspan=9><p align="center">No records found in this site\n\
                                </p></td>\n\
                                </tr>');
                 } else {
@@ -105,7 +112,7 @@ var scrape = {
         var e = {};
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
-        e["price"] = $.session.get("price");
+        e["price"] = $.session.get("PRICE");
 
         // e["code"] = "123";
         // e["name"] = "ARM & HAMMER Clumping Litter Ultra Last 40lb";
@@ -124,7 +131,7 @@ var scrape = {
                 $('#bedbat tbody tr td').remove();
                 if (data.length <= 0) {
                     $('#bedbat').append('<tr>\n\
-                               <td colspan=9><p align="center">No records found in your database\n\
+                               <td colspan=9><p align="center">No records found in this site\n\
                                </p></td>\n\
                                </tr>');
                 } else {
@@ -159,7 +166,7 @@ var scrape = {
 
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
-        e["price"] = $.session.get("price");
+        e["price"] = $.session.get("PRICE");
 
         var d = JSON.stringify(e);
         console.log("HO: " + d);
@@ -174,7 +181,7 @@ var scrape = {
                 $('#walmart tbody tr td').remove();
                 if (data.length <= 0) {
                     $('#walmart').append('<tr>\n\
-                               <td colspan=9><p align="center">No records found in your database\n\
+                               <td colspan=9><p align="center">No records found in this site\n\
                                </p></td>\n\
                                </tr>');
                 } else {
