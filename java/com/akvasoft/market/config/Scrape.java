@@ -6,7 +6,12 @@ import com.akvasoft.market.repo.ResultRepo;
 import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -15,15 +20,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-public class Scrape {
+@Controller
+public class Scrape implements InitializingBean {
+
+
     private static FirefoxDriver driver = null;
     private static String url[] = {"http://www.amazon-asin.com/asincheck/"};
     private static String codes[] = {"Products"};
     private static HashMap<String, String> handlers = new HashMap<>();
     JavascriptExecutor jse = (JavascriptExecutor) driver;
 
-    @Autowired
-    private ResultRepo repo;
 
     public String initialize() throws InterruptedException {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
@@ -44,7 +50,7 @@ public class Scrape {
         return "driver initialized";
     }
 
-    public List<Result> scrapeWalmart(String item, String amasonPrice, String code) throws InterruptedException {
+    public List<Result> scrapeWalmart(String item, String amasonPrice, String code, String image) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
@@ -72,6 +78,7 @@ public class Scrape {
 
                     vendor_price = product.findElement(By.tagName("div")).findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(6).findElement(By.className("price-group")).getAttribute("innerText");
                     product_link = product.findElement(By.tagName("div")).findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(4).findElement(By.tagName("a")).getAttribute("href");
+                    image = product.findElement(By.tagName("div")).findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).findElement(By.tagName("img")).getAttribute("src");
                     shipping_cost = "$ " + calculations.getShippingCost("walmart", vendor_price);
                     cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
                     profit = "$ " + calculations.getProfit(amasonPrice, cogs);
@@ -84,6 +91,7 @@ public class Scrape {
                     result.setProductlink(product_link);
                     result.setProfit(profit);
                     result.setRoi(roi);
+                    result.setImageLink(image);
                     result.setShippingcost(shipping_cost);
                     result.setVendorprice(vendor_price);
                     result.setCode(code);
@@ -91,10 +99,9 @@ public class Scrape {
                     result.setDate(dateFormat.format(date));
                     result.setAmazonLink("https://www.amazon.com/dp/" + code);
                     res.add(result);
-                    repo.save(result);
 
                     System.out.println(product_link);
-                    System.out.println(vendor_price);
+                    System.out.println(result.getImageLink());
                     System.out.println(shipping_cost);
                     System.out.println(cogs);
                     System.out.println(profit);
@@ -121,7 +128,7 @@ public class Scrape {
         return res;
     }
 
-    public List<Result> scrapeBedBath(String item, String amasonPrice, String code) throws InterruptedException {
+    public List<Result> scrapeBedBath(String item, String amasonPrice, String code, String image) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         calculations calculations = new calculations();
@@ -212,6 +219,7 @@ public class Scrape {
                 product_link = link;
                 vendor_price = "$ " + driver.findElementByCssSelector(".ProductDetailsLayout_7n4K2X > div:nth-child(3) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > span:nth-child(1)").getAttribute("innerText").split(" ")[1];
                 shipping_cost = "$ " + calculations.getShippingCost("bedbathandbeyond", vendor_price);
+                image = driver.findElementByXPath("/html/body/div[2]/div[2]/div[3]/main/div/div[1]/div/div/div[1]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div/div/div/a[1]/div").findElement(By.tagName("img")).getAttribute("src");
                 cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
                 profit = "$ " + calculations.getProfit(amasonPrice, cogs);
                 margin = "$ " + calculations.getMargin(profit, amasonPrice);
@@ -220,6 +228,7 @@ public class Scrape {
                 result = new Result();
                 result.setCogs(cogs);
                 result.setMargin(margin);
+                result.setImageLink(image);
                 result.setProductlink(product_link);
                 result.setProfit(profit);
                 result.setRoi(roi);
@@ -230,10 +239,10 @@ public class Scrape {
                 result.setDate(dateFormat.format(date));
                 result.setAmazonLink("https://www.amazon.com/dp/" + code);
                 res.add(result);
-                repo.save(result);
 
                 System.out.println(product_link);
                 System.out.println(vendor_price);
+                System.out.println(image + " BET=D =================================");
                 System.out.println(shipping_cost);
                 System.out.println(cogs);
                 System.out.println(profit);
@@ -247,7 +256,7 @@ public class Scrape {
         return res;
     }
 
-    public List<Result> scrapeOverStock(String item, String amasonPrice, String code) throws InterruptedException {
+    public List<Result> scrapeOverStock(String item, String amasonPrice, String code, String image) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         driver.get("https://www.overstock.com/");
@@ -279,27 +288,34 @@ public class Scrape {
                 driver.navigate().refresh();
                 continue;
             }
-            Thread.sleep(1000);
-
-            String message = driver.findElementByXPath("/html/body/div[1]/div[2]/div/div/div[1]").getAttribute("innerText");
+            Thread.sleep(10000);
+            String message = null;
+            try {
+                message = driver.findElementByXPath("/html/body/div[1]/div[2]/div/div/div[1]").getAttribute("innerText");
+            } catch (NoSuchElementException t) {
+                message = "ok";
+            }
             if (!message.contains("returned no results")) {
 
-                WebElement result = driver.findElementByXPath("/html/body/div[1]/div[2]/div/div/div[2]/div[2]/div[2]").findElement(By.id("product-container")).findElements(By.xpath("./*")).get(1);
+                WebElement result = driver.findElementByXPath("//*[@id=\"1\"]");
                 List<WebElement> items = result.findElements(By.xpath("./*"));
+                System.out.println(items.size());
                 int count = 1;
                 List<String> list = new ArrayList<>();
                 for (WebElement product : items) {
                     try {
                         String url = product.findElement(By.tagName("a")).getAttribute("href");
                         list.add(url);
+                        System.out.println("add link");
+                        if (count > 4) {
+                            break;
+                        }
+                        count++;
                     } catch (StaleElementReferenceException r) {
                         r.printStackTrace();
                         continue;
                     }
-                    if (count > 4) {
-                        break;
-                    }
-                    count++;
+
                 }
 
                 for (String s : list) {
@@ -307,6 +323,7 @@ public class Scrape {
                     product_link = driver.getCurrentUrl();
                     vendor_price = "$ " + driver.findElementByXPath("/html/body/div[1]/div[3]/section[1]/section[1]/div/div[2]/div[3]/div/form/div[1]/div[1]/div/section/div[1]/div/span[2]/span").getAttribute("content");
                     shipping_cost = "$ " + calculations.getShippingCost("Overstock", vendor_price);
+                    image = driver.findElementByXPath("/html/body/div[1]/div[3]/section[1]/section[1]/div/div[1]/div[1]/div/div[1]/div[2]/div/div[1]").findElement(By.tagName("img")).getAttribute("src");
                     cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
                     profit = "$ " + calculations.getProfit(amasonPrice, cogs);
                     margin = "$ " + calculations.getMargin(profit, amasonPrice);
@@ -317,6 +334,7 @@ public class Scrape {
                     result1.setProductlink(product_link);
                     result1.setProfit(profit);
                     result1.setRoi(roi);
+                    result1.setImageLink(image);
                     result1.setShippingcost(shipping_cost);
                     result1.setVendorprice(vendor_price);
                     result1.setCode(code);
@@ -324,10 +342,9 @@ public class Scrape {
                     result1.setDate(dateFormat.format(date));
                     result1.setAmazonLink("https://www.amazon.com/dp/" + code);
                     res.add(result1);
-                    repo.save(result1);
 
                     System.out.println("UPC CODE = ");
-                    System.out.println("AMAZON LINK = ");
+                    System.out.println("AMAZON LINK = " + image);
                     System.out.println("LINK = " + product_link);
                     System.out.println("VENDOR PRICE = " + vendor_price);
                     System.out.println("SHIPPING COST = " + shipping_cost);
@@ -343,20 +360,24 @@ public class Scrape {
 
 
             }
-
-            item = item.substring(0, item.lastIndexOf(" "));
-            System.out.println("SEARCHING ITEM = " + item);
+            try {
+                item = item.substring(0, item.lastIndexOf(" "));
+                System.out.println("SEARCHING ITEM = " + item);
+            } catch (StringIndexOutOfBoundsException s) {
+                return res;
+            }
         }
 
         return res;
     }
 
-    public List<Result> scrapeHomeDepot(String item, String amasonPrice, String code) throws InterruptedException {
+    public List<Result> scrapeHomeDepot(String item, String amasonPrice, String code, String image) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         driver.get("https://www.homedepot.com/");
         List<Result> res = new ArrayList<>();
         calculations calculations = new calculations();
+        Result result = null;
         boolean found = false;
         String product_link = "";
         String vendor_price;
@@ -365,7 +386,7 @@ public class Scrape {
         String profit;
         String margin;
         String roi;
-        Result result1 = new Result();
+        Result result1 = null;
         while (!found) {
             WebElement searchBox = driver.findElementByXPath("//*[@id=\"headerSearch\"]");
             WebElement searchButton = driver.findElementByXPath("//*[@id=\"headerSearchButton\"]");
@@ -384,14 +405,14 @@ public class Scrape {
                     List<WebElement> prices = price.findElements(By.xpath("./*"));
                     vendor_price = prices.get(0).getAttribute("innerText") + prices.get(1).getAttribute("innerText") + "." + prices.get(2).getAttribute("innerText");
                     product_link = driver.getCurrentUrl();
-
+                    image = driver.findElementByXPath("//*[@id=\"mediaPlayer\"]").findElement(By.tagName("img")).getAttribute("src");
                     shipping_cost = "$ " + calculations.getShippingCost("Home Depot", vendor_price);
                     cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
                     profit = "$ " + calculations.getProfit(amasonPrice, cogs);
                     margin = "$ " + calculations.getMargin(profit, amasonPrice);
                     roi = "$ " + calculations.getROI(profit, vendor_price, shipping_cost);
 
-
+                    result1 = new Result();
                     result1.setCogs(cogs);
                     result1.setMargin(margin);
                     result1.setProductlink(product_link);
@@ -400,14 +421,14 @@ public class Scrape {
                     result1.setShippingcost(shipping_cost);
                     result1.setVendorprice(vendor_price);
                     result1.setCode(code);
+                    result1.setImageLink(image);
                     result1.setWebsite("https://www.homedepot.com/");
                     result1.setDate(dateFormat.format(date));
                     result1.setAmazonLink("https://www.amazon.com/dp/" + code);
                     res.add(result1);
-                    repo.save(result1);
 
                     System.out.println("UPC CODE = ");
-                    System.out.println("AMAZON LINK = ");
+                    System.out.println("IMAGE = " + image);
                     System.out.println("LINK = " + product_link);
                     System.out.println("VENDOR PRICE = " + vendor_price);
                     System.out.println("SHIPPING COST = " + shipping_cost);
@@ -426,6 +447,8 @@ public class Scrape {
                     int count = 1;
                     for (WebElement product : list.findElements(By.xpath("./*"))) {
                         WebElement info = product.findElement(By.className("plp-pod__info"));
+                        WebElement imageElement = product.findElement(By.className("plp-pod__image"));
+                        image = imageElement.findElement(By.tagName("a")).getAttribute("href");
                         String url = info.findElements(By.xpath("./*")).get(0).findElement(By.tagName("a")).getAttribute("href");
                         urls.add(url);
                         if (count > 4) {
@@ -435,7 +458,7 @@ public class Scrape {
                     }
 
                     // scrape products
-                    Result result = null;
+
                     for (String link : urls) {
                         result = new Result();
                         driver.get(link);
@@ -460,14 +483,14 @@ public class Scrape {
                         result.setShippingcost(shipping_cost);
                         result.setVendorprice(vendor_price);
                         result.setCode(code);
+                        result.setImageLink(image);
                         result.setWebsite("https://www.homedepot.com/");
                         result.setDate(dateFormat.format(date));
                         result.setAmazonLink("https://www.amazon.com/dp/" + code);
                         res.add(result);
-                        repo.save(result);
 
                         System.out.println("UPC CODE = ");
-                        System.out.println("AMAZON LINK = ");
+                        System.out.println("IMAGE = ====" + image);
                         System.out.println("LINK = " + product_link);
                         System.out.println("VENDOR PRICE = " + vendor_price);
                         System.out.println("SHIPPING COST = " + shipping_cost);
@@ -494,18 +517,13 @@ public class Scrape {
     }
 
     public String findAmasonLink(String item) throws InterruptedException {
-        driver.get("https://www.amazon.com/");
-        WebElement searchBox = driver.findElementByXPath("//*[@id=\"twotabsearchtextbox\"]");
-        searchBox.clear();
-        searchBox.sendKeys(item);
-        searchBox.sendKeys(Keys.ENTER);
+        driver.get("https://www.amazon.com/dp/" + item);
+        WebElement searchBox = driver.findElementByCssSelector("#priceblock_ourprice");
+        return "https://www.amazon.com/dp/" + item + "  " + searchBox.getAttribute("innerText");
+    }
 
-        Thread.sleep(20000);
-        String href = driver.findElementByXPath("/html/body/div[1]/div[1]/div/div[3]/div[2]/div/div[4]/div[1]/div/ul/li/div/div/div/div[2]").findElement(By.tagName("a")).getAttribute("href");
-//        driver.get(href);
-//        Thread.sleep(20000);
-        String price = driver.findElementByXPath("/html/body/div[1]/div[1]/div/div[3]/div[2]/div/div[4]/div[1]/div/ul/li/div/div/div/div[2]/div[3]/div[1]/div/a/span[1]").getAttribute("innerText");
-        System.out.println(href);
-        return "https://www.amazon.com/dp/" + item + "  " + price;
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        this.initialize();
     }
 }

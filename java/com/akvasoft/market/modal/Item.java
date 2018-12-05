@@ -6,6 +6,15 @@ public class Item {
     String code;
     String name;
     String price;
+    String image;
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
 
     public String getCode() {
         return code;

@@ -10,13 +10,15 @@ public class Result {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private int id;
-    @Column(name = "amazon_link")
+    @Column(name = "amazon_link",length = 2000)
     private String amazonLink;
+    @Column(name = "image_link",length = 2000)
+    private String imageLink;
     @Column(name = "code")
     private String code;
-    @Column(name = "website")
+    @Column(name = "website",length = 2000)
     private String website;
-    @Column(name = "product_link")
+    @Column(name = "product_link",length = 2000)
     private String productlink;
     @Column(name = "vendor_price")
     private String vendorprice;
@@ -33,6 +35,13 @@ public class Result {
     @Column(name = "search_date")
     private String date;
 
+    public String getImageLink() {
+        return imageLink;
+    }
+
+    public void setImageLink(String imageLink) {
+        this.imageLink = imageLink;
+    }
 
     public int getId() {
         return id;

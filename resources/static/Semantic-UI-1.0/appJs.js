@@ -3,20 +3,21 @@ var scrape = {
     setAmazonInfo: function () {
         var link = $.session.get("LINK");
         var price = $.session.get("PRICE");
-
+        var image = $.session.get("IMAGE");
         document.getElementById("link").innerText = "Amazon Link - " + link;
         document.getElementById("price").innerText = "Amazon Price - " + price;
+        // document.getElementById("image").innerText = "Amazon Image - " + image;
+        var t = $.session.get("IMAGE");
+
     },
     scrapeHomeDeport: function () {
+
         var e = {};
 
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
         e["price"] = $.session.get("PRICE");
-
-        // e["code"] = "123";
-        // e["name"] = "ARM & HAMMER Clumping Litter Ultra Last 40lb";
-        // e["price"] = "$1209";
+        e["image"] = $.session.get("IMAGE");
 
         var d = JSON.stringify(e);
         console.log("HO: " + d);
@@ -63,7 +64,7 @@ var scrape = {
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
         e["price"] = $.session.get("PRICE");
-
+        e["image"] = $.session.get("IMAGE");
         // e["code"] = "123";
         // e["name"] = "ARM & HAMMER Clumping Litter Ultra Last 40lb";
         // e["price"] = "$1209";
@@ -113,7 +114,7 @@ var scrape = {
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
         e["price"] = $.session.get("PRICE");
-
+        e["image"] = $.session.get("IMAGE");
         // e["code"] = "123";
         // e["name"] = "ARM & HAMMER Clumping Litter Ultra Last 40lb";
         // e["price"] = "$1209";
@@ -167,7 +168,7 @@ var scrape = {
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
         e["price"] = $.session.get("PRICE");
-
+        e["image"] = $.session.get("IMAGE");
         var d = JSON.stringify(e);
         console.log("HO: " + d);
 

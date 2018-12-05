@@ -34,14 +34,20 @@ var scrape = {
             success: function (data, textStatus, jqXHR) {
                 var price = data.split("  ")[1];
                 var link = data.split("  ")[0];
-                alert(price);
-                alert(link);
+                var image = data.split("  ")[2];
 
                 $.session.set("LINK", link);
                 $.session.set("PRICE", price);
+                $.session.set("IMAGE", image);
 
                 $("#price").val(price);
-                window.location.replace("/results");
+
+                setTimeout(function () {
+
+                    window.location.replace("/results");
+
+                }, 5000);
+
             },
             error: function (jqXHR, textStatus, errorThrown) {
 
