@@ -28,7 +28,7 @@ public class Scrape {
     public String initialize() throws InterruptedException {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
         FirefoxOptions options = new FirefoxOptions();
-        options.setHeadless(false);
+        options.setHeadless(true);
         driver = new FirefoxDriver(options);
 
         for (int i = 0; i < url.length - 1; i++) {
