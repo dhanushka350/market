@@ -6,18 +6,18 @@ var scrape = {
         var image = $.session.get("IMAGE");
         document.getElementById("link").innerText = "Amazon Link - " + link;
         document.getElementById("price").innerText = "Amazon Price - " + price;
-        // document.getElementById("image").innerText = "Amazon Image - " + image;
         var t = $.session.get("IMAGE");
 
     },
     scrapeHomeDeport: function () {
 
         var e = {};
-
+        e["asin"] = $.session.get("asin");
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
         e["price"] = $.session.get("PRICE");
         e["image"] = $.session.get("IMAGE");
+
 
         var d = JSON.stringify(e);
         console.log("HO: " + d);
@@ -61,13 +61,11 @@ var scrape = {
     },
     scrapeOverStock: function () {
         var e = {};
+        e["asin"] = $.session.get("asin");
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
         e["price"] = $.session.get("PRICE");
         e["image"] = $.session.get("IMAGE");
-        // e["code"] = "123";
-        // e["name"] = "ARM & HAMMER Clumping Litter Ultra Last 40lb";
-        // e["price"] = "$1209";
 
         var d = JSON.stringify(e);
         console.log("HO: " + d);
@@ -111,13 +109,11 @@ var scrape = {
     },
     scrapeBedBath: function () {
         var e = {};
+        e["asin"] = $.session.get("asin");
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
         e["price"] = $.session.get("PRICE");
         e["image"] = $.session.get("IMAGE");
-        // e["code"] = "123";
-        // e["name"] = "ARM & HAMMER Clumping Litter Ultra Last 40lb";
-        // e["price"] = "$1209";
 
         var d = JSON.stringify(e);
         console.log("HO: " + d);
@@ -161,14 +157,12 @@ var scrape = {
     },
     scrapeWalMart: function () {
         var e = {};
-        // e["code"] = $('#code').val();
-        // e["name"] = $('#name').val();
-        // e["price"] = $('#price').val();
-
+        e["asin"] = $.session.get("asin");
         e["code"] = $.session.get("code");
         e["name"] = $.session.get("name");
         e["price"] = $.session.get("PRICE");
         e["image"] = $.session.get("IMAGE");
+        
         var d = JSON.stringify(e);
         console.log("HO: " + d);
 

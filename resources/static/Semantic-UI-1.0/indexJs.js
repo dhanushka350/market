@@ -2,59 +2,24 @@ $("#search").click(function () {
     var code = $("#code").val();
     var name = $("#name").val();
     var price = $("#price").val();
+    var asin = $("#asin").val();
+
     $.session.remove("code");
     $.session.remove("name");
     $.session.remove("price");
+    $.session.remove("asin");
+
     $.session.set("code", code);
     $.session.set("name", name);
     $.session.set("price", price);
+    $.session.set("asin", asin);
 
-    scrape.amazonPrice();
+    $.session.set("LINK", "https://www.amazon.com/dp/" + asin);
+    $.session.set("PRICE", price);
+
+    setTimeout(function () {
+        window.location.replace("/results");
+    }, 1000);
+
 });
 
-var scrape = {
-
-    amazonPrice: function () {
-        $('#message').removeAttr('hidden');
-
-        var e = {};
-        e["code"] = $.session.get("code");
-        e["name"] = $.session.get("name");
-        e["price"] = $.session.get("price");
-
-        var d = JSON.stringify(e);
-        console.log("HO: " + d);
-
-        $.ajax({
-            url: 'rest/scraper/scrape/amazon/price',
-            dataType: 'text',
-            contentType: "application/json",
-            type: 'POST',
-            data: d,
-            success: function (data, textStatus, jqXHR) {
-                var price = data.split("  ")[1];
-                var link = data.split("  ")[0];
-                var image = data.split("  ")[2];
-
-                $.session.set("LINK", link);
-                $.session.set("PRICE", price);
-                $.session.set("IMAGE", image);
-
-                $("#price").val(price);
-
-                setTimeout(function () {
-
-                    window.location.replace("/results");
-
-                }, 5000);
-
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-
-            },
-            beforeSend: function (xhr) {
-
-            }
-        });
-    },
-}

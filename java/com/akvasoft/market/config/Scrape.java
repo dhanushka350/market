@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Controller
-public class Scrape implements InitializingBean {
+public class Scrape {
 
 
     private static FirefoxDriver driver = null;
@@ -50,10 +50,10 @@ public class Scrape implements InitializingBean {
         return "driver initialized";
     }
 
-    public List<Result> scrapeWalmart(String item, String amasonPrice, String code, String image) throws InterruptedException {
+    public List<Result> scrapeWalmart(String item, String amasonPrice, String code, String image, String asin) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-
+        this.initialize();
         calculations calculations = new calculations();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         List<Result> res = new ArrayList<>();
@@ -65,14 +65,26 @@ public class Scrape implements InitializingBean {
         String margin;
         String roi;
         Result result = null;
+        int search_count = 0;
         while (true) {
             driver.get("https://www.walmart.com/");
             WebElement searchBox = driver.findElementByCssSelector("#global-search-input");
             searchBox.clear();
-            searchBox.sendKeys(item);
-            searchBox.sendKeys(Keys.ENTER);
+            if (search_count == 0) {
+                searchBox.sendKeys(code);
+                searchBox.sendKeys(Keys.ENTER);
+                System.out.println("SEARCH USING UPC CODE BED WALL");
+            } else if (search_count == 1) {
+                searchBox.sendKeys(asin);
+                searchBox.sendKeys(Keys.ENTER);
+                System.out.println("SEARCH USING ASIN CODE BED WALL");
+            } else {
+                searchBox.sendKeys(item);
+                searchBox.sendKeys(Keys.ENTER);
+            }
             Thread.sleep(5000);
             int count = 1;
+            search_count++;
             try {
                 for (WebElement product : driver.findElementByCssSelector(".search-result-gridview-items").findElements(By.xpath("./*"))) {
 
@@ -91,6 +103,7 @@ public class Scrape implements InitializingBean {
                     result.setProductlink(product_link);
                     result.setProfit(profit);
                     result.setRoi(roi);
+                    result.setAsin(asin);
                     result.setImageLink(image);
                     result.setShippingcost(shipping_cost);
                     result.setVendorprice(vendor_price);
@@ -114,8 +127,10 @@ public class Scrape implements InitializingBean {
                 }
             } catch (NoSuchElementException e) {
                 try {
-                    item = item.substring(0, item.lastIndexOf(" "));
-                    System.out.println("SEARCHING ITEM = " + item);
+                    if (search_count > 1) {
+                        item = item.substring(0, item.lastIndexOf(" "));
+                        System.out.println("SEARCHING ITEM = " + item);
+                    }
                     continue;
                 } catch (StringIndexOutOfBoundsException r) {
                     // no item found
@@ -125,13 +140,15 @@ public class Scrape implements InitializingBean {
             break;
 
         }
+        driver.close();
         return res;
     }
 
-    public List<Result> scrapeBedBath(String item, String amasonPrice, String code, String image) throws InterruptedException {
+    public List<Result> scrapeBedBath(String item, String amasonPrice, String code, String image, String asin) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         calculations calculations = new calculations();
+        this.initialize();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         List<Result> res = new ArrayList<>();
         Result result = null;
@@ -155,13 +172,23 @@ public class Scrape implements InitializingBean {
                 f.printStackTrace();
             }
         }
-
+        int search_count = 0;
         while (true) {
             try {
                 WebElement searchBox = driver.findElementByXPath("//*[@id=\"searchInput\"]");
                 searchBox.clear();
-                searchBox.sendKeys(item);
-                searchBox.sendKeys(Keys.ENTER);
+                if (search_count == 0) {
+                    searchBox.sendKeys(code);
+                    searchBox.sendKeys(Keys.ENTER);
+                    System.out.println("SEARCH USING UPC CODE BED BAT");
+                } else if (search_count == 1) {
+                    searchBox.sendKeys(asin);
+                    searchBox.sendKeys(Keys.ENTER);
+                    System.out.println("SEARCH USING ASIN CODE BED BAT");
+                } else {
+                    searchBox.sendKeys(item);
+                    searchBox.sendKeys(Keys.ENTER);
+                }
             } catch (ElementNotInteractableException e) {
                 try {
                     driver.findElementByXPath("/html/body/div[13]/div/div/div[2]/div/button").click();
@@ -194,11 +221,16 @@ public class Scrape implements InitializingBean {
             Thread.sleep(5000);
             System.out.println(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"));
             if ("NO SEARCH RESULTS FOR".equalsIgnoreCase(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"))) {
-                item = item.substring(0, item.lastIndexOf(" "));
+                try {
+                    item = item.substring(0, item.lastIndexOf(" "));
+                } catch (StringIndexOutOfBoundsException f) {
+                    return res;
+                }
                 System.out.println("SEARCHING ITEM = " + item);
                 continue;
             }
 
+            search_count++;
             int count = 1;
             List<String> list = new ArrayList<>();
             try {
@@ -208,63 +240,78 @@ public class Scrape implements InitializingBean {
                     if (count > 4) {
                         break;
                     }
+                    count++;
                 }
             } catch (Exception d) {
-                item = item.substring(0, item.lastIndexOf(" "));
-                System.out.println("SEARCHING ITEM = " + item);
+                if (search_count > 1) {
+                    item = item.substring(0, item.lastIndexOf(" "));
+                    System.out.println("SEARCHING ITEM = " + item);
+                }
                 continue;
             }
             for (String link : list) {
-                driver.get(link);
-                product_link = link;
-                vendor_price = "$ " + driver.findElementByCssSelector(".ProductDetailsLayout_7n4K2X > div:nth-child(3) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > span:nth-child(1)").getAttribute("innerText").split(" ")[1];
-                shipping_cost = "$ " + calculations.getShippingCost("bedbathandbeyond", vendor_price);
-                image = driver.findElementByXPath("/html/body/div[2]/div[2]/div[3]/main/div/div[1]/div/div/div[1]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div/div/div/a[1]/div").findElement(By.tagName("img")).getAttribute("src");
-                cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
-                profit = "$ " + calculations.getProfit(amasonPrice, cogs);
-                margin = "$ " + calculations.getMargin(profit, amasonPrice);
-                roi = "$ " + calculations.getROI(profit, vendor_price, shipping_cost);
+                try {
+                    driver.get(link);
+                    Thread.sleep(2000);
+                    product_link = link;
+                    vendor_price = "$ " + driver.findElementByCssSelector(".ProductDetailsLayout_7n4K2X > div:nth-child(3) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > span:nth-child(1)").getAttribute("innerText").split(" ")[1];
+                    shipping_cost = "$ " + calculations.getShippingCost("bedbathandbeyond", vendor_price);
+                    image = driver.findElementByXPath("/html/body/div[2]/div[2]/div[3]/main/div/div[1]/div/div/div[1]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div/div/div/a[1]/div").findElement(By.tagName("img")).getAttribute("src");
+                    cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
+                    profit = "$ " + calculations.getProfit(amasonPrice, cogs);
+                    margin = "$ " + calculations.getMargin(profit, amasonPrice);
+                    roi = "$ " + calculations.getROI(profit, vendor_price, shipping_cost);
 
-                result = new Result();
-                result.setCogs(cogs);
-                result.setMargin(margin);
-                result.setImageLink(image);
-                result.setProductlink(product_link);
-                result.setProfit(profit);
-                result.setRoi(roi);
-                result.setShippingcost(shipping_cost);
-                result.setVendorprice(vendor_price);
-                result.setCode(code);
-                result.setWebsite("https://www.bedbathandbeyond.com/");
-                result.setDate(dateFormat.format(date));
-                result.setAmazonLink("https://www.amazon.com/dp/" + code);
-                res.add(result);
+                    result = new Result();
+                    result.setCogs(cogs);
+                    result.setMargin(margin);
+                    result.setImageLink(image);
+                    result.setProductlink(product_link);
+                    result.setProfit(profit);
+                    result.setRoi(roi);
+                    result.setAsin(asin);
+                    result.setShippingcost(shipping_cost);
+                    result.setVendorprice(vendor_price);
+                    result.setCode(code);
+                    result.setWebsite("https://www.bedbathandbeyond.com/");
+                    result.setDate(dateFormat.format(date));
+                    result.setAmazonLink("https://www.amazon.com/dp/" + code);
+                    res.add(result);
+                    System.out.println(product_link);
+                    System.out.println(vendor_price);
+                    System.out.println(image + " BET=D =================================");
+                    System.out.println(shipping_cost);
+                    System.out.println(cogs);
+                    System.out.println(profit);
+                    System.out.println(margin);
+                    System.out.println(roi);
+                } catch (NoSuchElementException c) {
+                    continue;
+                }
 
-                System.out.println(product_link);
-                System.out.println(vendor_price);
-                System.out.println(image + " BET=D =================================");
-                System.out.println(shipping_cost);
-                System.out.println(cogs);
-                System.out.println(profit);
-                System.out.println(margin);
-                System.out.println(roi);
             }
 
 
             break;
         }
+        driver.close();
         return res;
     }
 
-    public List<Result> scrapeOverStock(String item, String amasonPrice, String code, String image) throws InterruptedException {
+    public List<Result> scrapeOverStock(String item, String amasonPrice, String code, String image, String asin) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        this.initialize();
         driver.get("https://www.overstock.com/");
         Thread.sleep(5000);
-        WebElement countryChange = driver.findElementByXPath("/html/body/div[1]/div[1]/header/nav/div[1]/div/div[2]/a");
-        driver.get(countryChange.getAttribute("href"));
-        WebElement america = driver.findElementByXPath("/html/body/div[3]/div/div/div[1]/div/div[2]/div[1]/div[2]/div[2]/ul/li[24]/a");
-        driver.get(america.getAttribute("href"));
+        try {
+            WebElement countryChange = driver.findElementByXPath("/html/body/div[1]/div[1]/header/nav/div[1]/div/div[2]/a");
+            driver.get(countryChange.getAttribute("href"));
+            WebElement america = driver.findElementByXPath("/html/body/div[3]/div/div/div[1]/div/div[2]/div[1]/div[2]/div[2]/ul/li[24]/a");
+            driver.get(america.getAttribute("href"));
+        } catch (NoSuchElementException t) {
+            System.out.println("country not found");
+        }
         List<Result> res = new ArrayList<>();
         calculations calculations = new calculations();
         boolean found = false;
@@ -276,18 +323,30 @@ public class Scrape implements InitializingBean {
         String margin;
         String roi;
         Result result1 = null;
+        int search_count = 0;
         while (!found) {
             WebElement searchBox = driver.findElementByXPath("//*[@id=\"search-input\"]");
             WebElement searchButton = driver.findElementByXPath("/html/body/div[1]/div[1]/header/nav/div[2]/div/div[2]/form/fieldset[2]/button");
 
             searchBox.clear();
-            searchBox.sendKeys(item);
+            if (search_count == 0) {
+                searchBox.sendKeys(code);
+                System.out.println("SEARCH USING UPC CODE");
+            } else if (search_count == 1) {
+                searchBox.sendKeys(asin);
+                System.out.println("SEARCH USING ASIN CODE");
+            } else {
+                searchBox.sendKeys(item);
+            }
+
             try {
                 searchButton.click();
             } catch (ElementClickInterceptedException e) {
                 driver.navigate().refresh();
                 continue;
             }
+
+            search_count++;
             Thread.sleep(10000);
             String message = null;
             try {
@@ -334,6 +393,7 @@ public class Scrape implements InitializingBean {
                     result1.setProductlink(product_link);
                     result1.setProfit(profit);
                     result1.setRoi(roi);
+                    result1.setAsin(asin);
                     result1.setImageLink(image);
                     result1.setShippingcost(shipping_cost);
                     result1.setVendorprice(vendor_price);
@@ -360,21 +420,27 @@ public class Scrape implements InitializingBean {
 
 
             }
-            try {
-                item = item.substring(0, item.lastIndexOf(" "));
-                System.out.println("SEARCHING ITEM = " + item);
-            } catch (StringIndexOutOfBoundsException s) {
-                return res;
+            if (search_count > 1) {
+                try {
+                    item = item.substring(0, item.lastIndexOf(" "));
+                    System.out.println("SEARCHING ITEM = " + item);
+                } catch (StringIndexOutOfBoundsException s) {
+                    return res;
+                }
             }
         }
-
+        driver.close();
         return res;
     }
 
-    public List<Result> scrapeHomeDepot(String item, String amasonPrice, String code, String image) throws InterruptedException {
+    public List<Result> scrapeHomeDepot(String item, String amasonPrice, String code, String image, String asin) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        this.initialize();
         driver.get("https://www.homedepot.com/");
+
+
+        Thread.sleep(2000);
         List<Result> res = new ArrayList<>();
         calculations calculations = new calculations();
         Result result = null;
@@ -387,15 +453,27 @@ public class Scrape implements InitializingBean {
         String margin;
         String roi;
         Result result1 = null;
+        int search_count = 0;
         while (!found) {
+
+
             WebElement searchBox = driver.findElementByXPath("//*[@id=\"headerSearch\"]");
             WebElement searchButton = driver.findElementByXPath("//*[@id=\"headerSearchButton\"]");
 
             searchBox.clear();
-            searchBox.sendKeys(item);
+            if (search_count == 0) {
+                System.out.println("SEARCH UPC CODE IN HOMEDEPOT");
+                searchBox.sendKeys(code);
+            } else if (search_count == 1) {
+                System.out.println("SEARCH UPC ASIN IN HOMEDEPOT");
+                searchBox.sendKeys(asin);
+            } else {
+                searchBox.sendKeys(item);
+            }
+
             searchButton.click();
             Thread.sleep(5000);
-
+            search_count++;
             try {
                 String message = driver.findElementByXPath("/html/body/div[1]/div[2]/div/div[2]/div/div[1]/div[1]/div[1]/h1").getAttribute("innerText");
             } catch (NoSuchElementException e) {
@@ -418,6 +496,7 @@ public class Scrape implements InitializingBean {
                     result1.setProductlink(product_link);
                     result1.setProfit(profit);
                     result1.setRoi(roi);
+                    result1.setAsin(asin);
                     result1.setShippingcost(shipping_cost);
                     result1.setVendorprice(vendor_price);
                     result1.setCode(code);
@@ -480,6 +559,7 @@ public class Scrape implements InitializingBean {
                         result.setProductlink(product_link);
                         result.setProfit(profit);
                         result.setRoi(roi);
+                        result.setAsin(asin);
                         result.setShippingcost(shipping_cost);
                         result.setVendorprice(vendor_price);
                         result.setCode(code);
@@ -508,22 +588,30 @@ public class Scrape implements InitializingBean {
                 break;
             }
 
-            item = item.substring(0, item.lastIndexOf(" "));
-            System.out.println("SEARCHING ITEM = " + item);
+            if (search_count > 1) {
+                item = item.substring(0, item.lastIndexOf(" "));
+                System.out.println("SEARCHING ITEM = " + item);
+            }
         }
         System.out.println(res.size() + "|||||||||||||||||||||||");
+        driver.close();
 
         return res;
     }
 
+
     public String findAmasonLink(String item) throws InterruptedException {
+        this.initialize();
+        System.out.println("AMASON SEARCH CODE " + item);
         driver.get("https://www.amazon.com/dp/" + item);
         WebElement searchBox = driver.findElementByCssSelector("#priceblock_ourprice");
-        return "https://www.amazon.com/dp/" + item + "  " + searchBox.getAttribute("innerText");
+        String href = searchBox.getAttribute("innerText");
+        driver.close();
+        return "https://www.amazon.com/dp/" + item + "  " + href;
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        this.initialize();
-    }
+//    @Override
+//    public void afterPropertiesSet() throws Exception {
+//        this.initialize();
+//    }
 }

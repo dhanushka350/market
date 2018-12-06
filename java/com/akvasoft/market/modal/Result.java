@@ -16,6 +16,8 @@ public class Result {
     private String imageLink;
     @Column(name = "code")
     private String code;
+    @Column(name = "asin")
+    private String asin;
     @Column(name = "website",length = 2000)
     private String website;
     @Column(name = "product_link",length = 2000)
@@ -34,6 +36,14 @@ public class Result {
     private String roi;
     @Column(name = "search_date")
     private String date;
+
+    public String getAsin() {
+        return asin;
+    }
+
+    public void setAsin(String asin) {
+        this.asin = asin;
+    }
 
     public String getImageLink() {
         return imageLink;

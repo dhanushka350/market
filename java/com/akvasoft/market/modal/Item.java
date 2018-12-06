@@ -7,6 +7,15 @@ public class Item {
     String name;
     String price;
     String image;
+    String asin;
+
+    public String getAsin() {
+        return asin;
+    }
+
+    public void setAsin(String asin) {
+        this.asin = asin;
+    }
 
     public String getImage() {
         return image;

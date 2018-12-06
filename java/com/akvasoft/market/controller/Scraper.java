@@ -22,15 +22,15 @@ public class Scraper {
     @ResponseBody
     private List<Result> scrape(@RequestBody Item item) {
         Scrape scrape = new Scrape();
-
+        System.out.println(item.getAsin()+"="+item.getCode()+"="+item.getName());
         List<Result> all = repo.findAllByCodeEqualsAndWebsiteEquals(item.getCode(), "https://www.homedepot.com/");
         if (all.size() > 0) {
             System.err.println("found in database");
             return all;
         }
-        System.out.println(item.getImage());
+
         try {
-            List<Result> list = scrape.scrapeHomeDepot(item.getName(), item.getPrice(), item.getCode(), item.getImage());
+            List<Result> list = scrape.scrapeHomeDepot(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
             repo.saveAll(list);
             return list;
         } catch (InterruptedException e) {
@@ -49,7 +49,7 @@ public class Scraper {
             return all;
         }
         try {
-            List<Result> list = scrape.scrapeOverStock(item.getName(), item.getPrice(), item.getCode(), item.getImage());
+            List<Result> list = scrape.scrapeOverStock(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
             repo.saveAll(list);
             return list;
         } catch (InterruptedException e) {
@@ -68,7 +68,7 @@ public class Scraper {
             return all;
         }
         try {
-            List<Result> list = scrape.scrapeBedBath(item.getName(), item.getPrice(), item.getCode(), item.getImage());
+            List<Result> list = scrape.scrapeBedBath(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
             repo.saveAll(list);
             return list;
         } catch (InterruptedException e) {
@@ -87,7 +87,7 @@ public class Scraper {
             return all;
         }
         try {
-            List<Result> list = scrape.scrapeWalmart(item.getName(), item.getPrice(), item.getCode(), item.getImage());
+            List<Result> list = scrape.scrapeWalmart(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
             repo.saveAll(list);
             return list;
         } catch (InterruptedException e) {
@@ -102,7 +102,7 @@ public class Scraper {
         Scrape scrape = new Scrape();
 
         try {
-            return scrape.findAmasonLink(item.getCode());
+            return scrape.findAmasonLink(item.getAsin());
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
