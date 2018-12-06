@@ -33,7 +33,7 @@ public class Scraper {
             List<Result> list = scrape.scrapeHomeDepot(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
             repo.saveAll(list);
             return list;
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;

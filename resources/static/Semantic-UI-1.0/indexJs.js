@@ -22,4 +22,3 @@ $("#search").click(function () {
     }, 1000);
 
 });
-

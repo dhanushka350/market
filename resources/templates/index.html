@@ -16,11 +16,11 @@
     </script>
 </head>
 <body>
-<h2 class="ui header" style="margin-top: 20px;margin-left: 10px; z-index: 0">
+<h2 class="ui header" style="margin-top: 15px;margin-left: 10px; z-index: 0">
     Akvasoft Solutions
     <div class="sub header">something something something write here</div>
 </h2>
-<div class="row" style="margin-left: 50px;margin-right: 50px; margin-top: 20%">
+<div class="row" style="margin-left: 50px;margin-right: 50px; margin-top: 17%">
     <div class="ui form" style=" width: 100%">
         <div class="four fields">
             <div class="field">
@@ -38,7 +38,19 @@
         </div>
     </div>
 </div>
+<div class="ui horizontal divider">
+    Or
+
+</div>
+<div style="margin-left: 45%;" class="ui teal labeled icon button" id="upload">
+    Create New Order
+    <i class="add icon"></i>
+</div>
 <br>
+<br>
+<div class="ui horizontal divider">
+
+</div>
 <div class="ui form" style="margin-left: 10%">
     <div class="inline fields">
         <label>Select your favorite sites :</label>
@@ -76,10 +88,18 @@
     </div>
 </div>
 <br>
+<div id='my_file_output'></div>
 <h6 class="ui teal header" style="font-weight: bold; margin-left: 44%; margin-top: 10px;" id="message" hidden="hidden">
     waiting for amazon price.</h6>
 </body>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xls/0.7.4-a/xls.js"></script>
 <script type="text/javascript" src='/Semantic-UI-1.0/indexJs.js'></script>
 <script src="/Semantic-UI-1.0/session/jquery.session.js"></script>
+<script>
+    $("#upload").click(function () {
+        window.location.replace("/home/fileStorage");
+    });
+</script>
 </html>

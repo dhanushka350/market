@@ -21,4 +21,11 @@ public class View {
         return new ModelAndView("result");
     }
 
+    @RequestMapping(value = {"/home/fileStorage"}, method = RequestMethod.GET)
+    public ModelAndView uploads() {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("uploads");
+        return modelAndView;
+    }
+
 }
