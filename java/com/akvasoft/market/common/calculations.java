@@ -6,15 +6,15 @@ import static jdk.nashorn.internal.objects.NativeMath.round;
 
 public class calculations {
 
-    private double salesTax = 10.00;
-    private double amasonFee = 15.00;
+    private double salesTax = 0.1;
+    private double amasonFee = 0.15;
     DecimalFormat df = new DecimalFormat("#.##");
 
     public Double getCOGS(String vendor_price, String shipping_cost, String amason_price) {
         double amasonPrice = Double.parseDouble(amason_price.replace("$", ""));
         double vendorPrice = Double.parseDouble(vendor_price.replace("$", ""));
         double shippingCost = Double.parseDouble(shipping_cost.replace("$", ""));
-        double v = (vendorPrice + shippingCost) * (1 + salesTax) + (amasonPrice * amasonFee);
+        double v = ((vendorPrice + shippingCost) * (1 + salesTax)) + (amasonPrice * amasonFee);
         return Double.valueOf(df.format(v));
     }
 
@@ -46,7 +46,15 @@ public class calculations {
             vendorPrice = Double.parseDouble(vendor_price.replace("$", ""));
         } catch (NumberFormatException c) {
             System.out.println("NUMBER FORMAT EXCEPTION " + vendor_price);
-            vendorPrice = Double.parseDouble(vendor_price.split(" ")[0].replace(",", "."));
+
+            try {
+                vendorPrice = Double.parseDouble(vendor_price.split(" ")[0].replace(",", "."));
+            } catch (NumberFormatException l) {
+                String s = vendor_price.replaceAll("[^\\d.]", "");
+                System.out.println(s);
+                vendorPrice = Double.parseDouble(s);
+            }
+
             System.out.println("RESET TO " + vendorPrice);
         }
         if ("Home Depot".equalsIgnoreCase(site)) {

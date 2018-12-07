@@ -94,9 +94,10 @@ public class FileStorageService {
             }
 
 
-            if (last != null) {
+            if (last != null && savedPointFound == false) {
                 if (last.getCode().equalsIgnoreCase(item.getCode()) && last.getAsin().equalsIgnoreCase(item.getAsin())) {
                     System.out.println("found last saved point");
+                    savedPointFound = true;
                 } else {
                     System.out.println("looking for a save point");
                     continue;

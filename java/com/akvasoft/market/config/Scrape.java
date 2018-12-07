@@ -60,6 +60,7 @@ public class Scrape {
         calculations calculations = new calculations();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         List<Result> res = new ArrayList<>();
+        boolean firstAttempt = true;
         String product_link;
         String vendor_price;
         String shipping_cost;
@@ -139,7 +140,7 @@ public class Scrape {
                         int ct = 0;
                         for (WebElement element : driver.findElementByXPath("/html/body/div[1]/div/div/div/div[1]/div/section/div[3]/div/div/div[4]/div[2]/div[2]/ul").findElements(By.xpath("./*"))) {
                             String imageLink = element.findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("img")).getAttribute("src");
-                            vendor_price = element.findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(6).findElement(By.tagName("span")).findElement(By.className("price-main-block")).getAttribute("innerText");
+                            vendor_price = element.findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(6).findElement(By.tagName("span")).findElement(By.className("price-main-block")).findElement(By.className("price-group")).getAttribute("innerText");
                             String link = element.findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(4).findElement(By.tagName("a")).getAttribute("href");
 
                             shipping_cost = "$ " + calculations.getShippingCost("walmart", vendor_price);
@@ -174,12 +175,19 @@ public class Scrape {
                             if (ct > 4) {
                                 break;
                             }
+                            ct++;
 
                         }
                     } catch (NoSuchElementException b) {
-                        b.printStackTrace();
+                        //b.printStackTrace();
+                        System.out.println("no products found here");
                         try {
+
                             if (search_count > 1) {
+                                if (firstAttempt) {
+                                    firstAttempt = false;
+                                    continue;
+                                }
                                 if (item.split(" ").length < 2) {
                                     break;
                                 }
@@ -211,7 +219,7 @@ public class Scrape {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         calculations calculations = new calculations();
-
+        boolean firstAttempt = true;
         List<Result> res = new ArrayList<>();
         Result result = null;
         String product_link;
@@ -319,16 +327,27 @@ public class Scrape {
                 System.out.println(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"));
                 if ("NO SEARCH RESULTS FOR".equalsIgnoreCase(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"))) {
                     try {
+
+
                         if (item.split(" ").length < 2) {
                             break;
                         }
-                        item = item.substring(0, item.lastIndexOf(" "));
+
+                        if (search_count > 1) {
+                            if (firstAttempt) {
+                                firstAttempt = false;
+                                continue;
+                            }
+                            item = item.substring(0, item.lastIndexOf(" "));
+                        }
+
                     } catch (StringIndexOutOfBoundsException f) {
                         return res;
                     }
                     System.out.println("SEARCHING ITEM = " + item);
                     continue;
                 }
+
                 int count = 1;
                 List<String> list = new ArrayList<>();
                 try {
@@ -345,8 +364,11 @@ public class Scrape {
                         if (item.split(" ").length < 2) {
                             break;
                         }
-                        item = item.substring(0, item.lastIndexOf(" "));
+                        if (firstAttempt == false) {
+                            item = item.substring(0, item.lastIndexOf(" "));
+                        }
                         System.out.println("SEARCHING ITEM = " + item);
+
                     }
                     continue;
                 }
@@ -408,6 +430,7 @@ public class Scrape {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         List<Result> res = new ArrayList<>();
+        boolean firstAttempt = true;
         try {
             try {
                 driver.get("https://www.overstock.com/");
@@ -493,6 +516,7 @@ public class Scrape {
                     for (String s : list) {
                         driver.get(s);
                         product_link = driver.getCurrentUrl();
+                        Thread.sleep(2000);
                         vendor_price = "$ " + driver.findElementByXPath("/html/body/div[1]/div[3]/section[1]/section[1]/div/div[2]/div[3]/div/form/div[1]/div[1]/div/section/div[1]/div/span[2]/span").getAttribute("content");
                         shipping_cost = "$ " + calculations.getShippingCost("Overstock", vendor_price);
                         image = driver.findElementByXPath("/html/body/div[1]/div[3]/section[1]/section[1]/div/div[1]/div[1]/div/div[1]/div[2]/div/div[1]").findElement(By.tagName("img")).getAttribute("src");
@@ -538,6 +562,10 @@ public class Scrape {
                         if (item.split(" ").length < 2) {
                             break;
                         }
+                        if (firstAttempt) {
+                            firstAttempt = false;
+                            continue;
+                        }
                         item = item.substring(0, item.lastIndexOf(" "));
                         System.out.println("SEARCHING ITEM = " + item);
                     } catch (StringIndexOutOfBoundsException s) {
@@ -557,7 +585,7 @@ public class Scrape {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         this.initialize();
         List<Result> res = new ArrayList<>();
-
+        boolean firstAttempt = true;
         try {
 
             driver.get("https://www.homedepot.com/");
@@ -711,6 +739,10 @@ public class Scrape {
                 if (search_count > 1) {
                     if (item.split(" ").length < 2) {
                         break;
+                    }
+                    if (firstAttempt) {
+                        firstAttempt = false;
+                        continue;
                     }
                     item = item.substring(0, item.lastIndexOf(" "));
                     System.out.println("SEARCHING ITEM = " + item);
