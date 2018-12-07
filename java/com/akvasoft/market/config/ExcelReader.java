@@ -1,10 +1,14 @@
 package com.akvasoft.market.config;
 
+import com.akvasoft.market.controller.Scraper;
 import com.akvasoft.market.modal.Item;
+import com.akvasoft.market.modal.SkippedProducts;
+import com.akvasoft.market.repo.Skipped;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import java.io.FileInputStream;
@@ -31,6 +35,7 @@ public class ExcelReader {
             XSSFSheet sheet = workbook.getSheetAt(0);
             Iterator rowIter = sheet.rowIterator();
             Item item = null;
+
             while (rowIter.hasNext()) {
                 item = new Item();
                 XSSFRow myRow = (XSSFRow) rowIter.next();
@@ -59,6 +64,11 @@ public class ExcelReader {
                     thirdcolumnValue = cellStoreVector.get(i + 2).toString();
                     fourthcolumnValue = cellStoreVector.get(i + 3).toString();
                 } catch (ArrayIndexOutOfBoundsException r) {
+                    item.setCode(firstcolumnValue + "skipped");
+                    item.setAsin(secondcolumnValue + "skipped");
+                    item.setName(thirdcolumnValue + "skipped");
+                    item.setPrice(fourthcolumnValue + "skipped");
+                    list.add(item);
                     continue;
                 }
 

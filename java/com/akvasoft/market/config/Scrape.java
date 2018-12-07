@@ -7,6 +7,7 @@ import com.akvasoft.market.repo.ResultRepo;
 import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -35,7 +36,7 @@ public class Scrape {
     public String initialize() throws InterruptedException {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
         FirefoxOptions options = new FirefoxOptions();
-        options.setHeadless(true);
+        options.setHeadless(false);
         driver = new FirefoxDriver(options);
 
         for (int i = 0; i < url.length - 1; i++) {
@@ -52,10 +53,10 @@ public class Scrape {
     }
 
     public List<Result> scrapeWalmart(String item, String amasonPrice, String code, String image, String asin) throws InterruptedException {
-
+        String proName = item;
+        int cc = proName.split(" ").length;
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        this.initialize();
         calculations calculations = new calculations();
         JavascriptExecutor jse = (JavascriptExecutor) driver;
         List<Result> res = new ArrayList<>();
@@ -70,7 +71,12 @@ public class Scrape {
         int search_count = 0;
         try {
             while (true) {
-                driver.get("https://www.walmart.com/");
+                try {
+                    driver.get("https://www.walmart.com/");
+                } catch (NullPointerException g) {
+                    this.initialize();
+                    driver.get("https://www.walmart.com/");
+                }
                 WebElement searchBox = driver.findElementByCssSelector("#global-search-input");
                 searchBox.clear();
                 if (search_count == 0) {
@@ -89,11 +95,11 @@ public class Scrape {
                 int count = 1;
                 search_count++;
                 try {
-                    for (WebElement product : driver.findElementByCssSelector(".search-result-gridview-items").findElements(By.xpath("./*"))) {
+                    for (WebElement product : driver.findElementByXPath("/html/body/div[1]/div/div/div/div[1]/div/section/div[3]/div/div/div[4]/div[2]/div[2]/div").findElements(By.xpath("./*"))) {
 
-                        vendor_price = product.findElement(By.tagName("div")).findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(6).findElement(By.className("price-group")).getAttribute("innerText");
-                        product_link = product.findElement(By.tagName("div")).findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(4).findElement(By.tagName("a")).getAttribute("href");
-                        image = product.findElement(By.tagName("div")).findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("a")).findElement(By.tagName("img")).getAttribute("src");
+                        vendor_price = product.findElement(By.className("tile-content")).findElement(By.className("tile-aside")).findElement(By.className("price-group")).getAttribute("innerText");
+                        product_link = product.findElement(By.className("arrange-fill")).findElement(By.className("tile-content")).findElement(By.tagName("a")).getAttribute("href");
+                        image = product.findElement(By.tagName("div")).findElement(By.className("arrange-fill")).findElement(By.tagName("img")).getAttribute("src");
                         shipping_cost = "$ " + calculations.getShippingCost("walmart", vendor_price);
                         cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
                         profit = "$ " + calculations.getProfit(amasonPrice, cogs);
@@ -130,20 +136,70 @@ public class Scrape {
                     }
                 } catch (NoSuchElementException e) {
                     try {
-                        if (search_count > 1) {
-                            item = item.substring(0, item.lastIndexOf(" "));
-                            System.out.println("SEARCHING ITEM = " + item);
+                        int ct = 0;
+                        for (WebElement element : driver.findElementByXPath("/html/body/div[1]/div/div/div/div[1]/div/section/div[3]/div/div/div[4]/div[2]/div[2]/ul").findElements(By.xpath("./*"))) {
+                            String imageLink = element.findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(1).findElement(By.tagName("img")).getAttribute("src");
+                            vendor_price = element.findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(6).findElement(By.tagName("span")).findElement(By.className("price-main-block")).getAttribute("innerText");
+                            String link = element.findElement(By.className("search-result-gridview-item")).findElements(By.xpath("./*")).get(4).findElement(By.tagName("a")).getAttribute("href");
+
+                            shipping_cost = "$ " + calculations.getShippingCost("walmart", vendor_price);
+                            cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
+                            profit = "$ " + calculations.getProfit(amasonPrice, cogs);
+                            margin = "$ " + calculations.getMargin(profit, amasonPrice);
+                            roi = "$ " + calculations.getROI(profit, vendor_price, shipping_cost);
+
+                            result = new Result();
+                            result.setCogs(cogs);
+                            result.setMargin(margin);
+                            result.setProductlink(link);
+                            result.setProfit(profit);
+                            result.setRoi(roi);
+                            result.setAsin(asin);
+                            result.setImageLink(imageLink);
+                            result.setShippingcost(shipping_cost);
+                            result.setVendorprice(vendor_price);
+                            result.setCode(code);
+                            result.setWebsite("https://www.walmart.com/");
+                            result.setDate(dateFormat.format(date));
+                            result.setAmazonLink("https://www.amazon.com/dp/" + code);
+                            res.add(result);
+
+                            System.out.println(link);
+                            System.out.println(result.getImageLink());
+                            System.out.println(shipping_cost);
+                            System.out.println(cogs);
+                            System.out.println(profit);
+                            System.out.println(margin);
+                            System.out.println(roi);
+                            if (ct > 4) {
+                                break;
+                            }
+
                         }
-                        continue;
-                    } catch (StringIndexOutOfBoundsException r) {
-                        // no item found
-                        break;
+                    } catch (NoSuchElementException b) {
+                        b.printStackTrace();
+                        try {
+                            if (search_count > 1) {
+                                if (item.split(" ").length < 2) {
+                                    break;
+                                }
+                                item = item.substring(0, item.lastIndexOf(" "));
+                                System.out.println("SEARCHING ITEM = " + item);
+                            }
+                            continue;
+                        } catch (StringIndexOutOfBoundsException r) {
+                            // no item found
+                            break;
+                        }
                     }
+                    e.printStackTrace();
+
                 }
                 break;
 
             }
             driver.quit();
+            driver.close();
             return res;
         } catch (Exception t) {
             t.printStackTrace();
@@ -155,8 +211,7 @@ public class Scrape {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         calculations calculations = new calculations();
-        this.initialize();
-        JavascriptExecutor jse = (JavascriptExecutor) driver;
+
         List<Result> res = new ArrayList<>();
         Result result = null;
         String product_link;
@@ -168,26 +223,41 @@ public class Scrape {
         String roi;
 
         try {
+            boolean al1 = false;
+            boolean al2 = false;
 
             while (true) {
-                driver.get("https://www.bedbathandbeyond.com/");
-                Thread.sleep(10000);
                 try {
-                    WebElement alert1 = driver.findElementByCssSelector(".rclCloseBtnWrapper");
-                    WebElement alert2 = driver.findElementByXPath("//*[@id=\"closeButton\"]");
-                    jse.executeScript("arguments[0].click();", alert1);
-                    jse.executeScript("arguments[0].click();", alert2);
+                    driver.get("https://www.bedbathandbeyond.com/");
+                } catch (NullPointerException g) {
+                    this.initialize();
+                    driver.get("https://www.bedbathandbeyond.com/");
+                }
+
+                Thread.sleep(5000);
+                try {
+                    WebElement addCloseOne = driver.findElementByCssSelector(".rclCloseBtnWrapper");
+                    addCloseOne.click();
+                    WebElement addCloseTwo = driver.findElementByXPath("//*[@id=\"closeButton\"]");
+                    addCloseTwo.click();
                     break;
+
                 } catch (Exception f) {
-                    f.printStackTrace();
-                    break;
+                    try {
+                        driver.findElementByXPath("//*[@id=\"searchInput\"]");
+                    } catch (Exception n) {
+                        System.out.println("can not click on alert");
+                        continue;
+                    }
                 }
             }
-            int search_count = 0;
+            JavascriptExecutor jse = ((JavascriptExecutor) driver);
+            int search_count = -1;
             while (true) {
                 try {
                     WebElement searchBox = driver.findElementByXPath("//*[@id=\"searchInput\"]");
                     searchBox.clear();
+                    search_count++;
                     if (search_count == 0) {
                         searchBox.sendKeys(code);
                         searchBox.sendKeys(Keys.ENTER);
@@ -201,31 +271,47 @@ public class Scrape {
                         searchBox.sendKeys(Keys.ENTER);
                     }
                 } catch (ElementNotInteractableException e) {
+
                     try {
                         driver.findElementByXPath("/html/body/div[13]/div/div/div[2]/div/button").click();
                         driver.findElementByXPath("//*[@id=\"closeButton\"]").click();
                     } catch (Exception f) {
-                        System.out.println("ALERT EXCEPTION");
+                        try {
+                            WebElement addCloseOne = driver.findElementByCssSelector(".rclCloseBtnWrapper");
+                            addCloseOne.click();
+                            WebElement addCloseTwo = driver.findElementByXPath("//*[@id=\"closeButton\"]");
+                            addCloseTwo.click();
+                            System.out.println("ALERT EXCEPTION");
+                        } catch (Exception v) {
+                        }
                     }
                     continue;
                 }
 
-                WebElement currency = driver.findElementByCssSelector("button.LinkListHandler_1GDLlO");
-                jse.executeScript("arguments[0].click();", currency);
 
-                WebElement btn = driver.findElementByCssSelector("#currencyDropdown-button");
-                jse.executeScript("arguments[0].click();", btn);
+                try {
+                    WebElement currency = driver.findElementByXPath("/html/body/div[2]/div[2]/div[5]/footer/div/div[2]/div[2]/ul[1]").findElement(By.className("accordion-collapsed")).findElement(By.className("Button_5b9DYQ"));
+                    System.out.println(currency.getAttribute("class"));
+//                    jse.executeScript("arguments[0].scrollIntoView(true);", currency);
+                    jse.executeScript("arguments[0].click();", currency);
+                    WebElement btn = driver.findElementByCssSelector("#currencyDropdown-button");
+                    jse.executeScript("arguments[0].click();", btn);
 
-                WebElement usd = driver.findElementByCssSelector("#currencyDropdown > div:nth-child(2) > ul:nth-child(1)");
-                Thread.sleep(5000);
-                for (WebElement element : usd.findElements(By.xpath("./*"))) {
-                    if (element.getAttribute("innerText").equalsIgnoreCase("US Dollar")) {
-                        element = element.findElement(By.tagName("button"));
-                        jse.executeScript("arguments[0].click();", element);
-                        System.out.println(element.getAttribute("innerText"));
-                        driver.findElementByCssSelector("#updateCountryCrncy").click();
-                        break;
+                    WebElement usd = driver.findElementByCssSelector("#currencyDropdown > div:nth-child(2) > ul:nth-child(1)");
+
+                    Thread.sleep(5000);
+                    for (WebElement element : usd.findElements(By.xpath("./*"))) {
+                        if (element.getAttribute("innerText").equalsIgnoreCase("US Dollar")) {
+                            element = element.findElement(By.tagName("button"));
+                            jse.executeScript("arguments[0].click();", element);
+                            System.out.println(element.getAttribute("innerText"));
+                            driver.findElementByCssSelector("#updateCountryCrncy").click();
+                            break;
+                        }
                     }
+                } catch (Exception v) {
+                    v.printStackTrace();
+                    break;
                 }
 
 
@@ -233,6 +319,9 @@ public class Scrape {
                 System.out.println(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"));
                 if ("NO SEARCH RESULTS FOR".equalsIgnoreCase(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"))) {
                     try {
+                        if (item.split(" ").length < 2) {
+                            break;
+                        }
                         item = item.substring(0, item.lastIndexOf(" "));
                     } catch (StringIndexOutOfBoundsException f) {
                         return res;
@@ -240,8 +329,6 @@ public class Scrape {
                     System.out.println("SEARCHING ITEM = " + item);
                     continue;
                 }
-
-                search_count++;
                 int count = 1;
                 List<String> list = new ArrayList<>();
                 try {
@@ -255,6 +342,9 @@ public class Scrape {
                     }
                 } catch (Exception d) {
                     if (search_count > 1) {
+                        if (item.split(" ").length < 2) {
+                            break;
+                        }
                         item = item.substring(0, item.lastIndexOf(" "));
                         System.out.println("SEARCHING ITEM = " + item);
                     }
@@ -306,10 +396,12 @@ public class Scrape {
                 break;
             }
             return res;
-        } catch (Exception t) {
+        } catch (
+                Exception t) {
             t.printStackTrace();
             return res;
         }
+
     }
 
     public List<Result> scrapeOverStock(String item, String amasonPrice, String code, String image, String asin) throws InterruptedException {
@@ -317,7 +409,13 @@ public class Scrape {
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         List<Result> res = new ArrayList<>();
         try {
-            driver.get("https://www.overstock.com/");
+            try {
+                driver.get("https://www.overstock.com/");
+            } catch (NullPointerException g) {
+                this.initialize();
+                driver.get("https://www.overstock.com/");
+            }
+
             Thread.sleep(5000);
             try {
                 WebElement countryChange = driver.findElementByXPath("/html/body/div[1]/div[1]/header/nav/div[1]/div/div[2]/a");
@@ -437,6 +535,9 @@ public class Scrape {
                 }
                 if (search_count > 1) {
                     try {
+                        if (item.split(" ").length < 2) {
+                            break;
+                        }
                         item = item.substring(0, item.lastIndexOf(" "));
                         System.out.println("SEARCHING ITEM = " + item);
                     } catch (StringIndexOutOfBoundsException s) {
@@ -458,6 +559,7 @@ public class Scrape {
         List<Result> res = new ArrayList<>();
 
         try {
+
             driver.get("https://www.homedepot.com/");
             Thread.sleep(2000);
             calculations calculations = new calculations();
@@ -607,6 +709,9 @@ public class Scrape {
                 }
 
                 if (search_count > 1) {
+                    if (item.split(" ").length < 2) {
+                        break;
+                    }
                     item = item.substring(0, item.lastIndexOf(" "));
                     System.out.println("SEARCHING ITEM = " + item);
                 }
@@ -630,31 +735,17 @@ public class Scrape {
         return "https://www.amazon.com/dp/" + item + "  " + href;
     }
 
-    public String scrapeExcel(String file) {
+    public List<Item> scrapeExcel(String file) {
         System.out.println("scaping excel");
         ExcelReader reader = new ExcelReader();
+        List<Item> read = null;
         try {
-            int e = 0;
-            List<Item> read = reader.read(file);
-            for (Item item : read) {
-                if (e == 0) {
-                    continue;
-                }
-
-                System.out.println("CODE == " + item.getCode());
-                System.out.println("ASIN == " + item.getAsin());
-                System.out.println("NAME == " + item.getName());
-                System.out.println("PRICE == " + item.getPrice());
-                if (e == 3) {
-                    break;
-                }
-                e++;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            read = reader.read(file);
+            System.out.println(read.size());
+        } catch (Exception e1) {
+            e1.printStackTrace();
         }
-        return file;
+        return read;
     }
 
 //    @Override

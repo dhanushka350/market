@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface ResultRepo extends JpaRepository<Result, Integer> {
-    List<Result> findAllByCodeEqualsAndWebsiteEquals(String code,String website);
+    List<Result> findAllByCodeEqualsAndWebsiteEquals(String code, String website);
+
+    Result findFirstByOrderByIdDesc();
 }

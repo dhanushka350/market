@@ -3,7 +3,12 @@ package com.akvasoft.market.service;
 import com.akvasoft.market.config.Scrape;
 import com.akvasoft.market.exception.FileStorageException;
 import com.akvasoft.market.exception.MyFileNotFoundException;
+import com.akvasoft.market.modal.Item;
+import com.akvasoft.market.modal.Result;
+import com.akvasoft.market.modal.SkippedProducts;
 import com.akvasoft.market.property.FileStorageProperties;
+import com.akvasoft.market.repo.ResultRepo;
+import com.akvasoft.market.repo.Skipped;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -17,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 @Service
 public class FileStorageService {
@@ -24,6 +30,10 @@ public class FileStorageService {
 
     @Autowired
     private Scrape scrape;
+    @Autowired
+    private Skipped skipped;
+    @Autowired
+    private ResultRepo repo;
 
     @Autowired
     public FileStorageService(FileStorageProperties fileStorageProperties) {
@@ -50,7 +60,7 @@ public class FileStorageService {
             // Copy file to the target location (Replacing existing file with the same name)
             Path targetLocation = this.fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            scrape.scrapeExcel(fileName);
+            saveList(fileName);
             return fileName;
         } catch (IOException ex) {
             throw new FileStorageException("Could not store file " + fileName + ". Please try again!", ex);
@@ -69,5 +79,85 @@ public class FileStorageService {
         } catch (MalformedURLException ex) {
             throw new MyFileNotFoundException("File not found " + fileName, ex);
         }
+    }
+
+    public void saveList(String file) {
+        List<Item> read = scrape.scrapeExcel(file);
+        Result last = repo.findFirstByOrderByIdDesc();
+        boolean savedPointFound = false;
+        int e = 0;
+        SkippedProducts products = null;
+        for (Item item : read) {
+            if (e == 0) {
+                e++;
+                continue;
+            }
+
+
+            if (last != null) {
+                if (last.getCode().equalsIgnoreCase(item.getCode()) && last.getAsin().equalsIgnoreCase(item.getAsin())) {
+                    System.out.println("found last saved point");
+                } else {
+                    System.out.println("looking for a save point");
+                    continue;
+                }
+            }
+
+            if (item.getCode().contains("skipped")) {
+                products = new SkippedProducts();
+                products.setUpc(item.getCode());
+                products.setAsin(item.getAsin());
+                skipped.save(products);
+                System.out.println("skipped saved");
+                continue;
+            }
+            try {
+
+                List<Result> homede = repo.findAllByCodeEqualsAndWebsiteEquals(item.getCode(), "https://www.homedepot.com/");
+                if (homede.size() > 0) {
+                    System.out.println("HOME DEPORT ALREADY SCRAPED.");
+                } else {
+                    List<Result> list = scrape.scrapeHomeDepot(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
+                    repo.saveAll(list);
+                }
+
+                List<Result> over = repo.findAllByCodeEqualsAndWebsiteEquals(item.getCode(), "https://www.overstock.com/");
+                if (over.size() > 0) {
+                    System.out.println("HOME OVERSTOCK ALREADY SCRAPED.");
+                } else {
+                    List<Result> list1 = scrape.scrapeOverStock(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
+                    repo.saveAll(list1);
+                }
+
+                List<Result> bed = repo.findAllByCodeEqualsAndWebsiteEquals(item.getCode(), "https://www.bedbathandbeyond.com/");
+                if (bed.size() > 0) {
+                    System.out.println("HOME BEDBATH ALREADY SCRAPED.");
+                } else {
+                    List<Result> list2 = scrape.scrapeBedBath(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
+                    repo.saveAll(list2);
+                }
+
+                List<Result> walmart = repo.findAllByCodeEqualsAndWebsiteEquals(item.getCode(), "https://www.walmart.com/");
+                if (walmart.size() > 0) {
+                    System.out.println("HOME WALMART ALREADY SCRAPED.");
+                } else {
+                    List<Result> list3 = scrape.scrapeWalmart(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
+                    repo.saveAll(list3);
+                }
+
+
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+            System.out.println("CODE == " + item.getCode());
+            System.out.println("ASIN == " + item.getAsin());
+            System.out.println("NAME == " + item.getName());
+            System.out.println("PRICE == " + item.getPrice());
+//                if (e == 3) {
+//                    break;
+//                }
+            e++;
+        }
+
     }
 }

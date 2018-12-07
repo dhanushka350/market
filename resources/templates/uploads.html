@@ -149,7 +149,7 @@
     </div>
     <div class="upload-content">
         <div class="single-upload">
-            <h3>Upload Your Excel File</h3>
+            <h3 id="head">Upload Your Excel File</h3>
             <form id="singleUploadForm" name="singleUploadForm">
                 <input id="singleFileUploadInput" type="file" name="file" class="file-input" required/>
                 <button type="submit" class="primary submit-btn">Submit</button>
@@ -240,6 +240,7 @@
 
 
     singleUploadForm.addEventListener('submit', function (event) {
+        document.getElementById("head").innerText = "please wait this may take a few minutes.";
         var files = singleFileUploadInput.files;
         if (files.length === 0) {
             singleFileUploadError.innerHTML = "Please select a file";

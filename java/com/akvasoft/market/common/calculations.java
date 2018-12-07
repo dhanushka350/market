@@ -9,6 +9,7 @@ public class calculations {
     private double salesTax = 10.00;
     private double amasonFee = 15.00;
     DecimalFormat df = new DecimalFormat("#.##");
+
     public Double getCOGS(String vendor_price, String shipping_cost, String amason_price) {
         double amasonPrice = Double.parseDouble(amason_price.replace("$", ""));
         double vendorPrice = Double.parseDouble(vendor_price.replace("$", ""));
@@ -34,13 +35,20 @@ public class calculations {
         double prof = Double.parseDouble(profit.replace("$", ""));
         double vendorPrice = Double.parseDouble(vendor_price.replace("$", ""));
         double shippingCost = Double.parseDouble(shipping_cost.replace("$", ""));
-        System.out.println(Double.valueOf(df.format((prof * (1 + salesTax)) / (vendorPrice + shippingCost)))+"|||||||||||||");
+        System.out.println(Double.valueOf(df.format((prof * (1 + salesTax)) / (vendorPrice + shippingCost))) + "|||||||||||||");
         return Double.valueOf(df.format((prof * (1 + salesTax)) / (vendorPrice + shippingCost)));
     }
 
     public Double getShippingCost(String site, String vendor_price) {
         double shippingCost = 0.0;
-        double vendorPrice = Double.parseDouble(vendor_price.replace("$", ""));
+        double vendorPrice = 0.0;
+        try {
+            vendorPrice = Double.parseDouble(vendor_price.replace("$", ""));
+        } catch (NumberFormatException c) {
+            System.out.println("NUMBER FORMAT EXCEPTION " + vendor_price);
+            vendorPrice = Double.parseDouble(vendor_price.split(" ")[0].replace(",", "."));
+            System.out.println("RESET TO " + vendorPrice);
+        }
         if ("Home Depot".equalsIgnoreCase(site)) {
             if (vendorPrice < 45) {
                 shippingCost = 5.99;

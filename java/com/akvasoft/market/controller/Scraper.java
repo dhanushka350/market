@@ -3,12 +3,15 @@ package com.akvasoft.market.controller;
 import com.akvasoft.market.config.Scrape;
 import com.akvasoft.market.modal.Item;
 import com.akvasoft.market.modal.Result;
+import com.akvasoft.market.modal.SkippedProducts;
 import com.akvasoft.market.repo.ResultRepo;
+import com.akvasoft.market.repo.Skipped;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Null;
+import java.awt.*;
 import java.util.List;
 
 @RestController
@@ -17,12 +20,14 @@ public class Scraper {
 
     @Autowired
     ResultRepo repo;
+    @Autowired
+    Skipped skipped;
 
     @RequestMapping(value = {"/scrape/homedeport"}, method = RequestMethod.POST)
     @ResponseBody
     private List<Result> scrape(@RequestBody Item item) {
         Scrape scrape = new Scrape();
-        System.out.println(item.getAsin()+"="+item.getCode()+"="+item.getName());
+        System.out.println(item.getAsin() + "=" + item.getCode() + "=" + item.getName());
         List<Result> all = repo.findAllByCodeEqualsAndWebsiteEquals(item.getCode(), "https://www.homedepot.com/");
         if (all.size() > 0) {
             System.err.println("found in database");
@@ -107,6 +112,10 @@ public class Scraper {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void saveSkippedItems(SkippedProducts products) {
+        skipped.save(products);
     }
 
 
