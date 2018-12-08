@@ -34,6 +34,8 @@ public class Scrape implements InitializingBean {
     private Products pro;
     @Autowired
     private ResultRepo repo;
+    @Autowired
+    private Scrape scrape;
 
     private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
@@ -45,7 +47,7 @@ public class Scrape implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 2; i++) {
             new Thread(() -> {
 
                 System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
@@ -78,29 +80,21 @@ public class Scrape implements InitializingBean {
     public void doM(FirefoxDriver driver) throws InterruptedException {
         com.akvasoft.market.modal.Products products = null;
         readWriteLock.writeLock().lock();
-        products = getUrl();
+        products = scrape.getUrl();
         readWriteLock.writeLock().unlock();
 
         List<Result> list = scrapeHomeDepot(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
-        readWriteLock.writeLock().lock();
         repo.saveAll(list);
-        readWriteLock.writeLock().unlock();
 
         List<Result> list1 = scrapeOverStock(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
-        readWriteLock.writeLock().lock();
         repo.saveAll(list1);
-        readWriteLock.writeLock().unlock();
 
         List<Result> list2 = scrapeBedBath(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
-        readWriteLock.writeLock().lock();
         repo.saveAll(list2);
-        readWriteLock.writeLock().unlock();
 
         List<Result> list3 = scrapeWalmart(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
-        readWriteLock.writeLock().lock();
         repo.saveAll(list3);
-        readWriteLock.writeLock().unlock();
-
+        pro.save(products);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

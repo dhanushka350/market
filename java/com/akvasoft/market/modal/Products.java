@@ -6,6 +6,8 @@ import javax.persistence.*;
 @Table(name = "items")
 public class Products {
     @Id
+    @Column(name = "id")
+    int id;
     @Column(name = "UPC_Code")
     private String UPC_Code;
     @Column(name = "ASIN")
