@@ -3,6 +3,7 @@ package com.akvasoft.market.config;
 import com.akvasoft.market.common.calculations;
 import com.akvasoft.market.modal.Item;
 import com.akvasoft.market.modal.Result;
+import com.akvasoft.market.repo.Products;
 import com.akvasoft.market.repo.ResultRepo;
 import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.DateFormat;
@@ -21,10 +24,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Controller
-public class Scrape {
+public class Scrape implements InitializingBean {
 
+    @Autowired
+    private Products pro;
+    @Autowired
+    private ResultRepo repo;
+
+    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     private static FirefoxDriver driver = null;
     private static String url[] = {"http://www.amazon-asin.com/asincheck/"};
@@ -32,6 +43,73 @@ public class Scrape {
     private static HashMap<String, String> handlers = new HashMap<>();
     JavascriptExecutor jse = (JavascriptExecutor) driver;
 
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        for (int i = 0; i < 8; i++) {
+            new Thread(() -> {
+
+                System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
+
+                FirefoxOptions options = new FirefoxOptions();
+                options.setHeadless(false);
+
+                FirefoxDriver driver = new FirefoxDriver(options);
+                System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "true");
+                System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
+                try {
+                    Thread.sleep(3000);
+                    driver.navigate().refresh();
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                while (true) {
+                    try {
+                        doM(driver);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void doM(FirefoxDriver driver) throws InterruptedException {
+        com.akvasoft.market.modal.Products products = null;
+        readWriteLock.writeLock().lock();
+        products = getUrl();
+        readWriteLock.writeLock().unlock();
+
+        List<Result> list = scrapeHomeDepot(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
+        readWriteLock.writeLock().lock();
+        repo.saveAll(list);
+        readWriteLock.writeLock().unlock();
+
+        List<Result> list1 = scrapeOverStock(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
+        readWriteLock.writeLock().lock();
+        repo.saveAll(list1);
+        readWriteLock.writeLock().unlock();
+
+        List<Result> list2 = scrapeBedBath(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
+        readWriteLock.writeLock().lock();
+        repo.saveAll(list2);
+        readWriteLock.writeLock().unlock();
+
+        List<Result> list3 = scrapeWalmart(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
+        readWriteLock.writeLock().lock();
+        repo.saveAll(list3);
+        readWriteLock.writeLock().unlock();
+
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public com.akvasoft.market.modal.Products getUrl() {
+        com.akvasoft.market.modal.Products products = null;
+        products = pro.findTopByStatus("ADD");
+        products.setStatus("SEARCH");
+        return products;
+    }
 
     public String initialize() throws InterruptedException {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
@@ -767,6 +845,7 @@ public class Scrape {
         return "https://www.amazon.com/dp/" + item + "  " + href;
     }
 
+
     public List<Item> scrapeExcel(String file) {
         System.out.println("scaping excel");
         ExcelReader reader = new ExcelReader();
@@ -779,6 +858,7 @@ public class Scrape {
         }
         return read;
     }
+
 
 //    @Override
 //    public void afterPropertiesSet() throws Exception {
