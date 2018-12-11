@@ -11,4 +11,5 @@ public interface ResultRepo extends JpaRepository<Result, Integer> {
     List<Result> findAllByCodeEqualsAndWebsiteEquals(String code, String website);
 
     Result findFirstByOrderByIdDesc();
+
 }

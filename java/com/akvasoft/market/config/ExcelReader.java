@@ -2,8 +2,11 @@ package com.akvasoft.market.config;
 
 import com.akvasoft.market.controller.Scraper;
 import com.akvasoft.market.modal.Item;
+import com.akvasoft.market.modal.Result;
 import com.akvasoft.market.modal.SkippedProducts;
+import com.akvasoft.market.repo.ResultRepo;
 import com.akvasoft.market.repo.Skipped;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -11,8 +14,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.Vector;
 
 @Controller
 public class ExcelReader {
+
 
     public List<Item> read(String file) throws Exception {
         List<Item> list = new ArrayList<>();
@@ -98,6 +101,4 @@ public class ExcelReader {
         return list;
 
     }
-
-
 }

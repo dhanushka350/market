@@ -47,33 +47,33 @@ public class Scrape implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        for (int i = 0; i < 2; i++) {
-            new Thread(() -> {
-
-                System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
-
-                FirefoxOptions options = new FirefoxOptions();
-                options.setHeadless(false);
-
-                FirefoxDriver driver = new FirefoxDriver(options);
-                System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "true");
-                System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
-                try {
-                    Thread.sleep(3000);
-                    driver.navigate().refresh();
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                while (true) {
-                    try {
-                        doM(driver);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }
+//        for (int i = 0; i < 2; i++) {
+//            new Thread(() -> {
+//
+//                System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
+//
+//                FirefoxOptions options = new FirefoxOptions();
+//                options.setHeadless(false);
+//
+//                FirefoxDriver driver = new FirefoxDriver(options);
+//                System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "true");
+//                System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
+//                try {
+//                    Thread.sleep(3000);
+//                    driver.navigate().refresh();
+//                    Thread.sleep(3000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                while (true) {
+//                    try {
+//                        doM(driver);
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }).start();
+//        }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

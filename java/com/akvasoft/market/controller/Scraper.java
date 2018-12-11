@@ -6,12 +6,19 @@ import com.akvasoft.market.modal.Result;
 import com.akvasoft.market.modal.SkippedProducts;
 import com.akvasoft.market.repo.ResultRepo;
 import com.akvasoft.market.repo.Skipped;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Null;
 import java.awt.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -119,4 +126,126 @@ public class Scraper {
     }
 
 
+    public void createExcel() throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        CreationHelper createHelper = workbook.getCreationHelper();
+        Sheet sheet = workbook.createSheet("market data");
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setFontHeightInPoints((short) 14);
+        headerFont.setColor(IndexedColors.RED.getIndex());
+
+        CellStyle headerCellStyle = workbook.createCellStyle();
+        headerCellStyle.setFont(headerFont);
+        Row headerRow = sheet.createRow(0);
+        ArrayList<String> list = new ArrayList();
+
+        list.add("UPC Code");
+        list.add("Amazon Link");
+
+        list.add("Home Depot Product Link");
+        list.add("Vendor Price");
+        list.add("Shipping Cost");
+        list.add("COGS");
+        list.add("Profit");
+        list.add("Margin");
+        list.add("ROI");
+
+        list.add("Overstock Product Link");
+        list.add("Vendor Price");
+        list.add("Shipping Cost");
+        list.add("COGS");
+        list.add("Profit");
+        list.add("Margin");
+        list.add("ROI");
+
+//        list.add("Bed Bath & Beyond Product Link");
+//        list.add("Vendor Price");
+//        list.add("Shipping Cost");
+//        list.add("COGS");
+//        list.add("Profit");
+//        list.add("Margin");
+//        list.add("ROI");
+
+        list.add("Walmart Product Link");
+        list.add("Vendor Price");
+        list.add("Shipping Cost");
+        list.add("COGS");
+        list.add("Profit");
+        list.add("Margin");
+        list.add("ROI");
+
+        for (int i = 0; i < list.size(); i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(list.get(i));
+            cell.setCellStyle(headerCellStyle);
+        }
+
+
+        List<Result> clist = new ArrayList<>();
+
+        for (Result result : repo.findAll()) {
+            if (!clist.contains(result)) {
+                clist.add(result);
+            }
+        }
+
+
+        int rowNum = 1;
+        int max = 6;
+        List<Result> all = clist;
+        for (Result result : all) {
+
+            List<Result> homeDepot = repo.findAllByCodeEqualsAndWebsiteEquals(result.getCode(), "https://www.homedepot.com/");
+            List<Result> oversock = repo.findAllByCodeEqualsAndWebsiteEquals(result.getCode(), "https://www.overstock.com/");
+            List<Result> walmart = repo.findAllByCodeEqualsAndWebsiteEquals(result.getCode(), "https://www.walmart.com/");
+
+            for (int i = 0; i < 4; i++) {
+
+                Result hh = homeDepot.get(i);
+                Result oo = oversock.get(i);
+                Result ww = walmart.get(i);
+
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(result.getCode());
+                row.createCell(1).setCellValue(result.getAmazonLink());
+
+                row.createCell(2).setCellValue(hh.getProductlink());
+                row.createCell(3).setCellValue(hh.getVendorprice());
+                row.createCell(4).setCellValue(hh.getShippingcost());
+                row.createCell(5).setCellValue(hh.getCogs());
+                row.createCell(6).setCellValue(hh.getProfit());
+                row.createCell(7).setCellValue(hh.getMargin());
+                row.createCell(8).setCellValue(hh.getRoi());
+
+                row.createCell(9).setCellValue(oo.getProductlink());
+                row.createCell(10).setCellValue(oo.getVendorprice());
+                row.createCell(11).setCellValue(oo.getShippingcost());
+                row.createCell(12).setCellValue(oo.getCogs());
+                row.createCell(13).setCellValue(oo.getProfit());
+                row.createCell(14).setCellValue(oo.getMargin());
+                row.createCell(15).setCellValue(oo.getRoi());
+
+                row.createCell(16).setCellValue(ww.getProductlink());
+                row.createCell(17).setCellValue(ww.getVendorprice());
+                row.createCell(18).setCellValue(ww.getShippingcost());
+                row.createCell(19).setCellValue(ww.getCogs());
+                row.createCell(20).setCellValue(ww.getProfit());
+                row.createCell(21).setCellValue(ww.getMargin());
+                row.createCell(22).setCellValue(ww.getRoi());
+
+            }
+        }
+
+        for (int i = 0; i < list.size(); i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        new File("/var/lib/tomcat8/current").mkdir();
+        new File("/var/lib/tomcat8/history/market").mkdirs();
+        FileOutputStream fileOut = new FileOutputStream("/var/lib/tomcat8/current/betland.xlsx");
+        workbook.write(fileOut);
+        fileOut.close();
+        workbook.close();
+    }
 }
