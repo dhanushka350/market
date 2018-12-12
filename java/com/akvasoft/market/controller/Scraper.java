@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "rest/scraper")
-public class Scraper {
+public class Scraper implements InitializingBean {
 
     @Autowired
     ResultRepo repo;
@@ -125,7 +125,6 @@ public class Scraper {
         skipped.save(products);
     }
 
-
     public void createExcel() throws IOException {
         Workbook workbook = new XSSFWorkbook();
         CreationHelper createHelper = workbook.getCreationHelper();
@@ -185,31 +184,61 @@ public class Scraper {
         List<Result> clist = new ArrayList<>();
 
         for (Result result : repo.findAll()) {
-            if (!clist.contains(result)) {
+            boolean found = false;
+
+            for (Result result1 : clist) {
+                if (result1.getCode().equalsIgnoreCase(result.getCode())) {
+                    System.out.println("====================================SKIPPED");
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
                 clist.add(result);
+                System.err.println("ADDED" + result.getCode());
             }
         }
 
 
         int rowNum = 1;
-        int max = 6;
-        List<Result> all = clist;
-        for (Result result : all) {
+        int max = 0;
 
+        for (Result result : clist) {
+            System.err.println(result.getCode() + "===========================");
             List<Result> homeDepot = repo.findAllByCodeEqualsAndWebsiteEquals(result.getCode(), "https://www.homedepot.com/");
             List<Result> oversock = repo.findAllByCodeEqualsAndWebsiteEquals(result.getCode(), "https://www.overstock.com/");
             List<Result> walmart = repo.findAllByCodeEqualsAndWebsiteEquals(result.getCode(), "https://www.walmart.com/");
 
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 5; i++) {
+                Result hh = new Result();
+                Result oo = new Result();
+                Result ww = new Result();
+                try {
+                    hh = homeDepot.get(i);
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.println("array out of bound");
+                }
 
-                Result hh = homeDepot.get(i);
-                Result oo = oversock.get(i);
-                Result ww = walmart.get(i);
+                try {
+                    oo = oversock.get(i);
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.println("array out of bound");
+                }
 
+                try {
+                    ww = walmart.get(i);
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.println("array out of bound");
+                }
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(result.getCode());
-                row.createCell(1).setCellValue(result.getAmazonLink());
-
+                if (i == 0) {
+                    row.createCell(0).setCellValue(result.getCode());
+                    row.createCell(1).setCellValue(result.getAmazonLink());
+                } else {
+                    row.createCell(0).setCellValue("");
+                    row.createCell(1).setCellValue("");
+                }
                 row.createCell(2).setCellValue(hh.getProductlink());
                 row.createCell(3).setCellValue(hh.getVendorprice());
                 row.createCell(4).setCellValue(hh.getShippingcost());
@@ -235,6 +264,11 @@ public class Scraper {
                 row.createCell(22).setCellValue(ww.getRoi());
 
             }
+            max++;
+//            if (max > 2) {
+//                break;
+//            }
+
         }
 
         for (int i = 0; i < list.size(); i++) {
@@ -243,9 +277,14 @@ public class Scraper {
 
         new File("/var/lib/tomcat8/current").mkdir();
         new File("/var/lib/tomcat8/history/market").mkdirs();
-        FileOutputStream fileOut = new FileOutputStream("/var/lib/tomcat8/current/betland.xlsx");
+        FileOutputStream fileOut = new FileOutputStream("/var/lib/tomcat8/current/market.xlsx");
         workbook.write(fileOut);
         fileOut.close();
         workbook.close();
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+//        createExcel();
     }
 }

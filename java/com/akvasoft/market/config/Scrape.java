@@ -1,6 +1,7 @@
 package com.akvasoft.market.config;
 
 import com.akvasoft.market.common.calculations;
+import com.akvasoft.market.controller.Scraper;
 import com.akvasoft.market.modal.Item;
 import com.akvasoft.market.modal.Result;
 import com.akvasoft.market.repo.Products;
@@ -43,7 +44,6 @@ public class Scrape implements InitializingBean {
     private static String url[] = {"http://www.amazon-asin.com/asincheck/"};
     private static String codes[] = {"Products"};
     private static HashMap<String, String> handlers = new HashMap<>();
-    JavascriptExecutor jse = (JavascriptExecutor) driver;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -74,6 +74,7 @@ public class Scrape implements InitializingBean {
 //                }
 //            }).start();
 //        }
+
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -331,93 +332,105 @@ public class Scrape implements InitializingBean {
                     }
                 }
             }
-            JavascriptExecutor jse = ((JavascriptExecutor) driver);
-            int search_count = -1;
-            while (true) {
-                try {
-                    WebElement searchBox = driver.findElementByXPath("//*[@id=\"searchInput\"]");
-                    searchBox.clear();
-                    search_count++;
-                    if (search_count == 0) {
-                        searchBox.sendKeys(code);
-                        searchBox.sendKeys(Keys.ENTER);
-                        System.out.println("SEARCH USING UPC CODE BED BAT");
-                    } else if (search_count == 1) {
-                        searchBox.sendKeys(asin);
-                        searchBox.sendKeys(Keys.ENTER);
-                        System.out.println("SEARCH USING ASIN CODE BED BAT");
-                    } else {
-                        searchBox.sendKeys(item);
-                        searchBox.sendKeys(Keys.ENTER);
-                    }
-                } catch (ElementNotInteractableException e) {
 
-                    try {
-                        driver.findElementByXPath("/html/body/div[13]/div/div/div[2]/div/button").click();
-                        driver.findElementByXPath("//*[@id=\"closeButton\"]").click();
-                    } catch (Exception f) {
-                        try {
-                            WebElement addCloseOne = driver.findElementByCssSelector(".rclCloseBtnWrapper");
-                            addCloseOne.click();
-                            WebElement addCloseTwo = driver.findElementByXPath("//*[@id=\"closeButton\"]");
-                            addCloseTwo.click();
-                            System.out.println("ALERT EXCEPTION");
-                        } catch (Exception v) {
-                        }
-                    }
-                    continue;
-                }
+            try {
+                JavascriptExecutor jse = driver;
+                WebElement currency = driver.findElementByTagName("footer").findElement(By.tagName("div")).findElements(By.xpath("./*")).get(3).findElements(By.xpath("./*")).get(1).findElements(By.xpath("./*"))
+                        .get(0).findElement(By.className("accordion-collapsed")).findElement(By.tagName("ul")).findElements(By.xpath("./*")).get(0).findElement(By.tagName("button"));
+                System.out.println(currency.getAttribute("class"));
 
+                jse.executeScript("arguments[0].scrollIntoView(true);", currency);
+                jse.executeScript("arguments[0].click();", currency);
+                WebElement btn = driver.findElementByCssSelector("#currencyDropdown-button");
+                jse.executeScript("arguments[0].click();", btn);
 
-                try {
-                    WebElement currency = driver.findElementByXPath("/html/body/div[2]/div[2]/div[5]/footer/div/div[2]/div[2]/ul[1]").findElement(By.className("accordion-collapsed")).findElement(By.className("Button_5b9DYQ"));
-                    System.out.println(currency.getAttribute("class"));
-//                    jse.executeScript("arguments[0].scrollIntoView(true);", currency);
-                    jse.executeScript("arguments[0].click();", currency);
-                    WebElement btn = driver.findElementByCssSelector("#currencyDropdown-button");
-                    jse.executeScript("arguments[0].click();", btn);
-
-                    WebElement usd = driver.findElementByCssSelector("#currencyDropdown > div:nth-child(2) > ul:nth-child(1)");
-
-                    Thread.sleep(5000);
-                    for (WebElement element : usd.findElements(By.xpath("./*"))) {
-                        if (element.getAttribute("innerText").equalsIgnoreCase("US Dollar")) {
-                            element = element.findElement(By.tagName("button"));
-                            jse.executeScript("arguments[0].click();", element);
-                            System.out.println(element.getAttribute("innerText"));
-                            driver.findElementByCssSelector("#updateCountryCrncy").click();
-                            break;
-                        }
-                    }
-                } catch (Exception v) {
-                    v.printStackTrace();
-                    break;
-                }
-
+                WebElement usd = driver.findElementByCssSelector("#currencyDropdown > div:nth-child(2) > ul:nth-child(1)");
 
                 Thread.sleep(5000);
-                System.out.println(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"));
-                if ("NO SEARCH RESULTS FOR".equalsIgnoreCase(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"))) {
-                    try {
-
-
-                        if (item.split(" ").length < 2) {
-                            break;
-                        }
-
-                        if (search_count > 1) {
-                            if (firstAttempt) {
-                                firstAttempt = false;
-                                continue;
-                            }
-                            item = item.substring(0, item.lastIndexOf(" "));
-                        }
-
-                    } catch (StringIndexOutOfBoundsException f) {
-                        return res;
+                for (WebElement element : usd.findElements(By.xpath("./*"))) {
+                    if (element.getAttribute("innerText").equalsIgnoreCase("US Dollar")) {
+                        element = element.findElement(By.tagName("button"));
+                        jse.executeScript("arguments[0].click();", element);
+                        System.out.println(element.getAttribute("innerText"));
+                        driver.findElementByCssSelector("#updateCountryCrncy").click();
+//                            break;
                     }
-                    System.out.println("SEARCHING ITEM = " + item);
-                    continue;
+                }
+
+            } catch (Exception v) {
+                v.printStackTrace();
+//                    break;
+            }
+
+
+            int search_count = -1;
+
+            while (true) {
+                while (true) {
+                    try {
+                        WebElement searchBox = driver.findElementByXPath("//*[@id=\"searchInput\"]");
+                        searchBox.clear();
+                        search_count++;
+                        if (search_count == 0) {
+                            searchBox.sendKeys(code);
+                            searchBox.sendKeys(Keys.ENTER);
+                            System.out.println("SEARCH USING UPC CODE BED BAT");
+
+                        } else if (search_count == 1) {
+                            searchBox.sendKeys(asin);
+                            searchBox.sendKeys(Keys.ENTER);
+                            System.out.println("SEARCH USING ASIN CODE BED BAT");
+
+                        } else {
+                            searchBox.sendKeys(item);
+                            searchBox.sendKeys(Keys.ENTER);
+
+                        }
+
+                    } catch (ElementNotInteractableException e) {
+
+                        try {
+                            driver.findElementByXPath("/html/body/div[13]/div/div/div[2]/div/button").click();
+                            driver.findElementByXPath("//*[@id=\"closeButton\"]").click();
+                        } catch (Exception f) {
+                            try {
+                                WebElement addCloseOne = driver.findElementByCssSelector(".rclCloseBtnWrapper");
+                                addCloseOne.click();
+                                WebElement addCloseTwo = driver.findElementByXPath("//*[@id=\"closeButton\"]");
+                                addCloseTwo.click();
+                                System.out.println("ALERT EXCEPTION");
+                            } catch (Exception v) {
+                            }
+                        }
+                        continue;
+                    }
+
+                    Thread.sleep(5000);
+                    System.out.println(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"));
+                    if ("NO SEARCH RESULTS FOR".equalsIgnoreCase(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"))) {
+                        try {
+
+
+                            if (item.split(" ").length < 2) {
+                                break;
+                            }
+
+                            if (search_count > 1) {
+                                if (firstAttempt) {
+                                    firstAttempt = false;
+                                    continue;
+                                }
+                                item = item.substring(0, item.lastIndexOf(" "));
+                            }
+
+                        } catch (StringIndexOutOfBoundsException f) {
+                            return res;
+                        }
+                        System.out.println("SEARCHING ITEM = " + item);
+                        continue;
+                    } else {
+                        break;
+                    }
                 }
 
                 int count = 1;

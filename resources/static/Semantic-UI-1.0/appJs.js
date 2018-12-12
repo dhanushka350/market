@@ -145,7 +145,7 @@ var scrape = {
 
                     }
                 }
-                scrape.scrapeWalMart();
+                // scrape.scrapeWalMart();
             },
             error: function (jqXHR, textStatus, errorThrown) {
 
