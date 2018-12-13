@@ -143,6 +143,7 @@ public class Scraper implements InitializingBean {
         list.add("Amazon Link");
 
         list.add("Home Depot Product Link");
+        list.add("Home Depot Image Link");
         list.add("Vendor Price");
         list.add("Shipping Cost");
         list.add("COGS");
@@ -151,6 +152,7 @@ public class Scraper implements InitializingBean {
         list.add("ROI");
 
         list.add("Overstock Product Link");
+        list.add("Overstock Image Link");
         list.add("Vendor Price");
         list.add("Shipping Cost");
         list.add("COGS");
@@ -158,15 +160,17 @@ public class Scraper implements InitializingBean {
         list.add("Margin");
         list.add("ROI");
 
-//        list.add("Bed Bath & Beyond Product Link");
-//        list.add("Vendor Price");
-//        list.add("Shipping Cost");
-//        list.add("COGS");
-//        list.add("Profit");
-//        list.add("Margin");
-//        list.add("ROI");
-
         list.add("Walmart Product Link");
+        list.add("Walmart Image Link");
+        list.add("Vendor Price");
+        list.add("Shipping Cost");
+        list.add("COGS");
+        list.add("Profit");
+        list.add("Margin");
+        list.add("ROI");
+
+        list.add("Bed Bath & Beyond Product Link");
+        list.add("Bed Bath & Beyond Image Link");
         list.add("Vendor Price");
         list.add("Shipping Cost");
         list.add("COGS");
@@ -209,28 +213,37 @@ public class Scraper implements InitializingBean {
             List<Result> homeDepot = repo.findAllByCodeEqualsAndWebsiteEquals(result.getCode(), "https://www.homedepot.com/");
             List<Result> oversock = repo.findAllByCodeEqualsAndWebsiteEquals(result.getCode(), "https://www.overstock.com/");
             List<Result> walmart = repo.findAllByCodeEqualsAndWebsiteEquals(result.getCode(), "https://www.walmart.com/");
+            List<Result> bedbath = repo.findAllByCodeEqualsAndWebsiteEquals(result.getCode(), "https://www.bedbathandbeyond.com/");
 
             for (int i = 0; i < 5; i++) {
                 Result hh = new Result();
                 Result oo = new Result();
                 Result ww = new Result();
+                Result bb = new Result();
                 try {
-                    hh = homeDepot.get(i);
+
+                    hh = setCodeLength(homeDepot.get(i));
                 } catch (IndexOutOfBoundsException e) {
                     System.out.println("array out of bound");
                 }
 
                 try {
-                    oo = oversock.get(i);
+                    oo = setCodeLength(oversock.get(i));
                 } catch (IndexOutOfBoundsException e) {
                     System.out.println("array out of bound");
                 }
 
                 try {
-                    ww = walmart.get(i);
+                    ww = setCodeLength(walmart.get(i));
                 } catch (IndexOutOfBoundsException e) {
                     System.out.println("array out of bound");
                 }
+                try {
+                    bb = setCodeLength(bedbath.get(i));
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.println("array out of bound");
+                }
+
                 Row row = sheet.createRow(rowNum++);
                 if (i == 0) {
                     row.createCell(0).setCellValue(result.getCode());
@@ -240,34 +253,46 @@ public class Scraper implements InitializingBean {
                     row.createCell(1).setCellValue("");
                 }
                 row.createCell(2).setCellValue(hh.getProductlink());
-                row.createCell(3).setCellValue(hh.getVendorprice());
-                row.createCell(4).setCellValue(hh.getShippingcost());
-                row.createCell(5).setCellValue(hh.getCogs());
-                row.createCell(6).setCellValue(hh.getProfit());
-                row.createCell(7).setCellValue(hh.getMargin());
-                row.createCell(8).setCellValue(hh.getRoi());
+                row.createCell(3).setCellValue(hh.getImageLink());
+                row.createCell(4).setCellValue(hh.getVendorprice());
+                row.createCell(5).setCellValue(hh.getShippingcost());
+                row.createCell(6).setCellValue(hh.getCogs());
+                row.createCell(7).setCellValue(hh.getProfit());
+                row.createCell(8).setCellValue(hh.getMargin());
+                row.createCell(9).setCellValue(hh.getRoi());
 
-                row.createCell(9).setCellValue(oo.getProductlink());
-                row.createCell(10).setCellValue(oo.getVendorprice());
-                row.createCell(11).setCellValue(oo.getShippingcost());
-                row.createCell(12).setCellValue(oo.getCogs());
-                row.createCell(13).setCellValue(oo.getProfit());
-                row.createCell(14).setCellValue(oo.getMargin());
-                row.createCell(15).setCellValue(oo.getRoi());
+                row.createCell(10).setCellValue(oo.getProductlink());
+                row.createCell(11).setCellValue(oo.getImageLink());
+                row.createCell(12).setCellValue(oo.getVendorprice());
+                row.createCell(13).setCellValue(oo.getShippingcost());
+                row.createCell(14).setCellValue(oo.getCogs());
+                row.createCell(15).setCellValue(oo.getProfit());
+                row.createCell(16).setCellValue(oo.getMargin());
+                row.createCell(17).setCellValue(oo.getRoi());
 
-                row.createCell(16).setCellValue(ww.getProductlink());
-                row.createCell(17).setCellValue(ww.getVendorprice());
-                row.createCell(18).setCellValue(ww.getShippingcost());
-                row.createCell(19).setCellValue(ww.getCogs());
-                row.createCell(20).setCellValue(ww.getProfit());
-                row.createCell(21).setCellValue(ww.getMargin());
-                row.createCell(22).setCellValue(ww.getRoi());
+                row.createCell(18).setCellValue(ww.getProductlink());
+                row.createCell(19).setCellValue(ww.getImageLink());
+                row.createCell(20).setCellValue(ww.getVendorprice());
+                row.createCell(21).setCellValue(ww.getShippingcost());
+                row.createCell(22).setCellValue(ww.getCogs());
+                row.createCell(23).setCellValue(ww.getProfit());
+                row.createCell(24).setCellValue(ww.getMargin());
+                row.createCell(25).setCellValue(ww.getRoi());
+
+                row.createCell(26).setCellValue(bb.getProductlink());
+                row.createCell(27).setCellValue(bb.getImageLink());
+                row.createCell(28).setCellValue(bb.getVendorprice());
+                row.createCell(29).setCellValue(bb.getShippingcost());
+                row.createCell(30).setCellValue(bb.getCogs());
+                row.createCell(31).setCellValue(bb.getProfit());
+                row.createCell(32).setCellValue(bb.getMargin());
+                row.createCell(33).setCellValue(bb.getRoi());
 
             }
             max++;
-//            if (max > 2) {
-//                break;
-//            }
+            if (max > 10) {
+                break;
+            }
 
         }
 
@@ -281,6 +306,20 @@ public class Scraper implements InitializingBean {
         workbook.write(fileOut);
         fileOut.close();
         workbook.close();
+    }
+
+    private Result setCodeLength(Result result) {
+
+        int length = result.getCode().length();
+        if (length < 12) {
+            while (result.getCode().length() < 12) {
+                System.out.println("adding zero");
+                String code = result.getCode();
+                result.setCode("0" + code);
+            }
+        }
+        System.out.println(result.getCode() + "===========================================================================");
+        return result;
     }
 
     @Override

@@ -47,33 +47,33 @@ public class Scrape implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-//        for (int i = 0; i < 2; i++) {
-//            new Thread(() -> {
-//
-//                System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
-//
-//                FirefoxOptions options = new FirefoxOptions();
-//                options.setHeadless(false);
-//
-//                FirefoxDriver driver = new FirefoxDriver(options);
-//                System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "true");
-//                System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
-//                try {
-//                    Thread.sleep(3000);
-//                    driver.navigate().refresh();
-//                    Thread.sleep(3000);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//                while (true) {
-//                    try {
-//                        doM(driver);
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }).start();
-//        }
+        for (int i = 0; i < 2; i++) {
+            new Thread(() -> {
+
+                System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
+
+                FirefoxOptions options = new FirefoxOptions();
+                options.setHeadless(true);
+
+                driver = new FirefoxDriver(options);
+                System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "true");
+                System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
+                try {
+                    Thread.sleep(3000);
+                    driver.navigate().refresh();
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                while (true) {
+                    try {
+                        doM(driver);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
 
     }
 
@@ -235,7 +235,7 @@ public class Scrape implements InitializingBean {
                             result.setCode(code);
                             result.setWebsite("https://www.walmart.com/");
                             result.setDate(dateFormat.format(date));
-                            result.setAmazonLink("https://www.amazon.com/dp/" + code);
+                            result.setAmazonLink("https://www.amazon.com/dp/" + asin);
                             res.add(result);
 
                             System.out.println(link);
@@ -483,7 +483,7 @@ public class Scrape implements InitializingBean {
                         result.setCode(code);
                         result.setWebsite("https://www.bedbathandbeyond.com/");
                         result.setDate(dateFormat.format(date));
-                        result.setAmazonLink("https://www.amazon.com/dp/" + code);
+                        result.setAmazonLink("https://www.amazon.com/dp/" + asin);
                         res.add(result);
                         System.out.println(product_link);
                         System.out.println(vendor_price);
@@ -622,7 +622,7 @@ public class Scrape implements InitializingBean {
                         result1.setCode(code);
                         result1.setWebsite("https://www.overstock.com/");
                         result1.setDate(dateFormat.format(date));
-                        result1.setAmazonLink("https://www.amazon.com/dp/" + code);
+                        result1.setAmazonLink("https://www.amazon.com/dp/" + asin);
                         res.add(result1);
 
                         System.out.println("UPC CODE = ");
@@ -736,7 +736,7 @@ public class Scrape implements InitializingBean {
                         result1.setImageLink(image);
                         result1.setWebsite("https://www.homedepot.com/");
                         result1.setDate(dateFormat.format(date));
-                        result1.setAmazonLink("https://www.amazon.com/dp/" + code);
+                        result1.setAmazonLink("https://www.amazon.com/dp/" + asin);
                         res.add(result1);
 
                         System.out.println("UPC CODE = ");
@@ -799,7 +799,7 @@ public class Scrape implements InitializingBean {
                             result.setImageLink(image);
                             result.setWebsite("https://www.homedepot.com/");
                             result.setDate(dateFormat.format(date));
-                            result.setAmazonLink("https://www.amazon.com/dp/" + code);
+                            result.setAmazonLink("https://www.amazon.com/dp/" + asin);
                             res.add(result);
 
                             System.out.println("UPC CODE = ");
