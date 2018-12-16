@@ -197,7 +197,7 @@
     function uploadSingleFile(file) {
         var formData = new FormData();
         formData.append("file", file);
-        formData.append("user", user);
+        formData.append("user", 'user');
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "/uploadFile");
 
