@@ -3,6 +3,8 @@ package com.akvasoft.market.controller.files;
 import com.akvasoft.market.config.Scrape;
 import com.akvasoft.market.payload.UploadFileResponse;
 import com.akvasoft.market.service.FileStorageService;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 @RestController
 public class FileController {

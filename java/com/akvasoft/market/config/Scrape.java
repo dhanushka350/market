@@ -38,64 +38,73 @@ public class Scrape implements InitializingBean {
     @Autowired
     private Scrape scrape;
 
-    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private static ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
-    private static FirefoxDriver driver = null;
+    //    private static FirefoxDriver driver = null;
     private static String url[] = {"http://www.amazon-asin.com/asincheck/"};
     private static String codes[] = {"Products"};
     private static HashMap<String, String> handlers = new HashMap<>();
+//    JavascriptExecutor jse = (JavascriptExecutor) driver;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        for (int i = 0; i < 2; i++) {
-            new Thread(() -> {
-
-                System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
-
-                FirefoxOptions options = new FirefoxOptions();
-                options.setHeadless(true);
-
-                driver = new FirefoxDriver(options);
-                System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "true");
-                System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
-                try {
-                    Thread.sleep(3000);
-                    driver.navigate().refresh();
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                while (true) {
-                    try {
-                        doM(driver);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }
+//        for (int i = 0; i < 7; i++) {
+//            new Thread(() -> {
+//
+//                System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
+//
+//                FirefoxOptions options = new FirefoxOptions();
+//                options.setHeadless(true);
+//
+//                FirefoxDriver driver = new FirefoxDriver(options);
+//                System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "true");
+//                System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
+//                try {
+//                    Thread.sleep(3000);
+//                    driver.navigate().refresh();
+//                    Thread.sleep(3000);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//                boolean b = true;
+//                while (b) {
+//                    try {
+//                        b = doM(driver);
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }).start();
+//        }
 
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void doM(FirefoxDriver driver) throws InterruptedException {
+    public boolean doM(FirefoxDriver driver) throws InterruptedException {
         com.akvasoft.market.modal.Products products = null;
         readWriteLock.writeLock().lock();
-        products = scrape.getUrl();
+        try {
+            products = scrape.getUrl();
+        } catch (NullPointerException e) {
+            readWriteLock.writeLock().unlock();
+            return false;
+        }
         readWriteLock.writeLock().unlock();
 
-        List<Result> list = scrapeHomeDepot(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
+        List<Result> list = scrapeHomeDepot(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN(), driver);
         repo.saveAll(list);
 
-        List<Result> list1 = scrapeOverStock(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
+        List<Result> list1 = scrapeOverStock(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN(), driver);
         repo.saveAll(list1);
 
-        List<Result> list2 = scrapeBedBath(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
+        List<Result> list2 = scrapeBedBath(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN(), driver);
         repo.saveAll(list2);
 
-        List<Result> list3 = scrapeWalmart(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN());
+        List<Result> list3 = scrapeWalmart(products.getTitle(), products.getPrice(), products.getUPC_Code(), "", products.getASIN(), driver);
         repo.saveAll(list3);
+        products.setStatus("DONE");
         pro.save(products);
+        return true;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -106,26 +115,26 @@ public class Scrape implements InitializingBean {
         return products;
     }
 
-    public String initialize() throws InterruptedException {
-        System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
-        FirefoxOptions options = new FirefoxOptions();
-        options.setHeadless(false);
-        driver = new FirefoxDriver(options);
+//    public String initialize() throws InterruptedException {
+//        System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
+//        FirefoxOptions options = new FirefoxOptions();
+//        options.setHeadless(false);
+//        driver = new FirefoxDriver(options);
+//
+//        for (int i = 0; i < url.length - 1; i++) {
+//            driver.executeScript("window.open()");
+//        }
+//
+//        ArrayList<String> windowsHandles = new ArrayList<>(driver.getWindowHandles());
+//
+//        for (int i = 0; i < url.length; i++) {
+//            handlers.put(codes[i], windowsHandles.get(i));
+//        }
+//
+//        return "driver initialized";
+//    }
 
-        for (int i = 0; i < url.length - 1; i++) {
-            driver.executeScript("window.open()");
-        }
-
-        ArrayList<String> windowsHandles = new ArrayList<>(driver.getWindowHandles());
-
-        for (int i = 0; i < url.length; i++) {
-            handlers.put(codes[i], windowsHandles.get(i));
-        }
-
-        return "driver initialized";
-    }
-
-    public List<Result> scrapeWalmart(String item, String amasonPrice, String code, String image, String asin) throws InterruptedException {
+    public List<Result> scrapeWalmart(String item, String amasonPrice, String code, String image, String asin, FirefoxDriver driver) throws InterruptedException {
         String proName = item;
         int cc = proName.split(" ").length;
         Date date = new Date();
@@ -142,13 +151,14 @@ public class Scrape implements InitializingBean {
         String margin;
         String roi;
         Result result = null;
-        int search_count = 0;
+        int search_count = 2;
         try {
             while (true) {
                 try {
                     driver.get("https://www.walmart.com/");
                 } catch (NullPointerException g) {
-                    this.initialize();
+                    driver.navigate().refresh();
+                    Thread.sleep(5000);
                     driver.get("https://www.walmart.com/");
                 }
                 WebElement searchBox = driver.findElementByCssSelector("#global-search-input");
@@ -165,7 +175,7 @@ public class Scrape implements InitializingBean {
                     searchBox.sendKeys(item);
                     searchBox.sendKeys(Keys.ENTER);
                 }
-                Thread.sleep(5000);
+                Thread.sleep(3000);
                 int count = 1;
                 search_count++;
                 try {
@@ -252,7 +262,6 @@ public class Scrape implements InitializingBean {
 
                         }
                     } catch (NoSuchElementException b) {
-                        //b.printStackTrace();
                         System.out.println("no products found here");
                         try {
 
@@ -266,6 +275,8 @@ public class Scrape implements InitializingBean {
                                 }
                                 item = item.substring(0, item.lastIndexOf(" "));
                                 System.out.println("SEARCHING ITEM = " + item);
+//                    break;                                                                                          ========================================== HERE
+                                return res;
                             }
                             continue;
                         } catch (StringIndexOutOfBoundsException r) {
@@ -279,8 +290,8 @@ public class Scrape implements InitializingBean {
                 break;
 
             }
-            driver.quit();
-            driver.close();
+//            driver.quit();
+//            driver.close();
             return res;
         } catch (Exception t) {
             t.printStackTrace();
@@ -288,7 +299,7 @@ public class Scrape implements InitializingBean {
         }
     }
 
-    public List<Result> scrapeBedBath(String item, String amasonPrice, String code, String image, String asin) throws InterruptedException {
+    public List<Result> scrapeBedBath(String item, String amasonPrice, String code, String image, String asin, FirefoxDriver driver) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         calculations calculations = new calculations();
@@ -308,14 +319,16 @@ public class Scrape implements InitializingBean {
             boolean al2 = false;
 
             while (true) {
+
                 try {
                     driver.get("https://www.bedbathandbeyond.com/");
                 } catch (NullPointerException g) {
-                    this.initialize();
+                    driver.navigate().refresh();
+                    Thread.sleep(5000);
                     driver.get("https://www.bedbathandbeyond.com/");
                 }
 
-                Thread.sleep(5000);
+                Thread.sleep(3000);
                 try {
                     WebElement addCloseOne = driver.findElementByCssSelector(".rclCloseBtnWrapper");
                     addCloseOne.click();
@@ -326,6 +339,7 @@ public class Scrape implements InitializingBean {
                 } catch (Exception f) {
                     try {
                         driver.findElementByXPath("//*[@id=\"searchInput\"]");
+                        break;
                     } catch (Exception n) {
                         System.out.println("can not click on alert");
                         continue;
@@ -358,14 +372,14 @@ public class Scrape implements InitializingBean {
                 }
 
             } catch (Exception v) {
-                v.printStackTrace();
+//                v.printStackTrace();
 //                    break;
             }
 
 
-            int search_count = -1;
-
-            while (true) {
+            int search_count = 2;
+            boolean end = false;
+            while (!end) {
                 while (true) {
                     try {
                         WebElement searchBox = driver.findElementByXPath("//*[@id=\"searchInput\"]");
@@ -410,7 +424,6 @@ public class Scrape implements InitializingBean {
                     if ("NO SEARCH RESULTS FOR".equalsIgnoreCase(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"))) {
                         try {
 
-
                             if (item.split(" ").length < 2) {
                                 break;
                             }
@@ -421,6 +434,9 @@ public class Scrape implements InitializingBean {
                                     continue;
                                 }
                                 item = item.substring(0, item.lastIndexOf(" "));
+//                    break;                                            ========================================== HERE
+                                end = true;
+                                break;
                             }
 
                         } catch (StringIndexOutOfBoundsException f) {
@@ -428,8 +444,6 @@ public class Scrape implements InitializingBean {
                         }
                         System.out.println("SEARCHING ITEM = " + item);
                         continue;
-                    } else {
-                        break;
                     }
                 }
 
@@ -445,12 +459,16 @@ public class Scrape implements InitializingBean {
                         count++;
                     }
                 } catch (Exception d) {
+                    d.printStackTrace();
                     if (search_count > 1) {
                         if (item.split(" ").length < 2) {
                             break;
                         }
-                        if (firstAttempt == false) {
+                        if (!firstAttempt) {
                             item = item.substring(0, item.lastIndexOf(" "));
+//                    break;                                                                                          ========================================== HERE
+                            end = true;
+                            break;
                         }
                         System.out.println("SEARCHING ITEM = " + item);
 
@@ -494,6 +512,7 @@ public class Scrape implements InitializingBean {
                         System.out.println(margin);
                         System.out.println(roi);
                     } catch (NoSuchElementException c) {
+                        c.printStackTrace();
                         continue;
                     }
 
@@ -511,7 +530,7 @@ public class Scrape implements InitializingBean {
 
     }
 
-    public List<Result> scrapeOverStock(String item, String amasonPrice, String code, String image, String asin) throws InterruptedException {
+    public List<Result> scrapeOverStock(String item, String amasonPrice, String code, String image, String asin, FirefoxDriver driver) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         List<Result> res = new ArrayList<>();
@@ -520,11 +539,12 @@ public class Scrape implements InitializingBean {
             try {
                 driver.get("https://www.overstock.com/");
             } catch (NullPointerException g) {
-                this.initialize();
+                driver.navigate().refresh();
+                Thread.sleep(5000);
                 driver.get("https://www.overstock.com/");
             }
 
-            Thread.sleep(5000);
+            Thread.sleep(3000);
             try {
                 WebElement countryChange = driver.findElementByXPath("/html/body/div[1]/div[1]/header/nav/div[1]/div/div[2]/a");
                 driver.get(countryChange.getAttribute("href"));
@@ -544,7 +564,7 @@ public class Scrape implements InitializingBean {
             String margin;
             String roi;
             Result result1 = null;
-            int search_count = 0;
+            int search_count = 2;
             while (!found) {
                 WebElement searchBox = driver.findElementByXPath("//*[@id=\"search-input\"]");
                 WebElement searchButton = driver.findElementByXPath("/html/body/div[1]/div[1]/header/nav/div[2]/div/div[2]/form/fieldset[2]/button");
@@ -568,7 +588,7 @@ public class Scrape implements InitializingBean {
                 }
 
                 search_count++;
-                Thread.sleep(10000);
+                Thread.sleep(5000);
                 String message = null;
                 try {
                     message = driver.findElementByXPath("/html/body/div[1]/div[2]/div/div/div[1]").getAttribute("innerText");
@@ -601,7 +621,7 @@ public class Scrape implements InitializingBean {
                     for (String s : list) {
                         driver.get(s);
                         product_link = driver.getCurrentUrl();
-                        Thread.sleep(2000);
+                        Thread.sleep(5000);
                         vendor_price = "$ " + driver.findElementByXPath("/html/body/div[1]/div[3]/section[1]/section[1]/div/div[2]/div[3]/div/form/div[1]/div[1]/div/section/div[1]/div/span[2]/span").getAttribute("content");
                         shipping_cost = "$ " + calculations.getShippingCost("Overstock", vendor_price);
                         image = driver.findElementByXPath("/html/body/div[1]/div[3]/section[1]/section[1]/div/div[1]/div[1]/div/div[1]/div[2]/div/div[1]").findElement(By.tagName("img")).getAttribute("src");
@@ -653,6 +673,8 @@ public class Scrape implements InitializingBean {
                         }
                         item = item.substring(0, item.lastIndexOf(" "));
                         System.out.println("SEARCHING ITEM = " + item);
+//                    break;                                                                                            ========================================== HERE
+                        return res;
                     } catch (StringIndexOutOfBoundsException s) {
                         return res;
                     }
@@ -665,16 +687,15 @@ public class Scrape implements InitializingBean {
         }
     }
 
-    public List<Result> scrapeHomeDepot(String item, String amasonPrice, String code, String image, String asin) throws InterruptedException {
+    public List<Result> scrapeHomeDepot(String item, String amasonPrice, String code, String image, String asin, FirefoxDriver driver) throws InterruptedException {
         Date date = new Date();
         DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        this.initialize();
         List<Result> res = new ArrayList<>();
         boolean firstAttempt = true;
         try {
 
             driver.get("https://www.homedepot.com/");
-            Thread.sleep(2000);
+            Thread.sleep(5000);
             calculations calculations = new calculations();
             Result result = null;
             boolean found = false;
@@ -686,7 +707,7 @@ public class Scrape implements InitializingBean {
             String margin;
             String roi;
             Result result1 = null;
-            int search_count = 0;
+            int search_count = 2;
             while (!found) {
 
 
@@ -754,7 +775,14 @@ public class Scrape implements InitializingBean {
 
                     } catch (NoSuchElementException r) {
                         // collect five product urls..
-                        WebElement list = driver.findElementByXPath("/html/body/div[1]/div[2]/div/div[1]/div[5]/div[2]/div[2]/div[1]/div[1]/div/div");
+                        WebElement list = null;
+                        try {
+                            list = driver.findElementByXPath("/html/body/div[1]/div[2]/div/div[1]/div[5]/div[2]/div[3]/div[1]/div[1]/div/div");
+                        } catch (NoSuchElementException rt) {
+                            list = driver.findElementByXPath("/html/body/div[1]/div[2]/div/div[1]/div[5]/div[2]/div[2]/div[1]/div[1]/div/div");
+                        }
+
+
                         List<String> urls = new ArrayList<>();
                         int count = 1;
                         for (WebElement product : list.findElements(By.xpath("./*"))) {
@@ -829,8 +857,11 @@ public class Scrape implements InitializingBean {
                         firstAttempt = false;
                         continue;
                     }
+
                     item = item.substring(0, item.lastIndexOf(" "));
                     System.out.println("SEARCHING ITEM = " + item);
+//                    break;                                                                                          ========================================== HERE
+                    return res;
                 }
             }
             System.out.println(res.size() + "|||||||||||||||||||||||");
@@ -843,13 +874,15 @@ public class Scrape implements InitializingBean {
 
 
     public String findAmasonLink(String item) throws InterruptedException {
+//
+//        System.out.println("AMASON SEARCH CODE " + item);
+//        driver.get("https://www.amazon.com/dp/" + item);
+//        WebElement searchBox = driver.findElementByCssSelector("#priceblock_ourprice");
+//        String href = searchBox.getAttribute("innerText");
+//        driver.close();
+//        return "https://www.amazon.com/dp/" + item + "  " + href;
 
-        System.out.println("AMASON SEARCH CODE " + item);
-        driver.get("https://www.amazon.com/dp/" + item);
-        WebElement searchBox = driver.findElementByCssSelector("#priceblock_ourprice");
-        String href = searchBox.getAttribute("innerText");
-        driver.close();
-        return "https://www.amazon.com/dp/" + item + "  " + href;
+        return "";
     }
 
 

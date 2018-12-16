@@ -6,9 +6,12 @@ import com.akvasoft.market.modal.Result;
 import com.akvasoft.market.modal.SkippedProducts;
 import com.akvasoft.market.repo.ResultRepo;
 import com.akvasoft.market.repo.Skipped;
+import com.akvasoft.market.service.FileStorageService;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +22,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -29,6 +33,33 @@ public class Scraper implements InitializingBean {
     ResultRepo repo;
     @Autowired
     Skipped skipped;
+    @Autowired
+    FileStorageService storageService;
+
+    private static FirefoxDriver driver = null;
+    private static String url[] = {"http://www.amazon-asin.com/asincheck/"};
+    private static String codes[] = {"Products"};
+    private static HashMap<String, String> handlers = new HashMap<>();
+
+
+    public String initialize() throws InterruptedException {
+        System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
+        FirefoxOptions options = new FirefoxOptions();
+        options.setHeadless(false);
+        driver = new FirefoxDriver(options);
+
+        for (int i = 0; i < url.length - 1; i++) {
+            driver.executeScript("window.open()");
+        }
+
+        ArrayList<String> windowsHandles = new ArrayList<>(driver.getWindowHandles());
+
+        for (int i = 0; i < url.length; i++) {
+            handlers.put(codes[i], windowsHandles.get(i));
+        }
+
+        return "driver initialized";
+    }
 
     @RequestMapping(value = {"/scrape/homedeport"}, method = RequestMethod.POST)
     @ResponseBody
@@ -42,7 +73,8 @@ public class Scraper implements InitializingBean {
         }
 
         try {
-            List<Result> list = scrape.scrapeHomeDepot(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
+            initialize();
+            List<Result> list = scrape.scrapeHomeDepot(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin(), driver);
             repo.saveAll(list);
             return list;
         } catch (Exception e) {
@@ -61,7 +93,10 @@ public class Scraper implements InitializingBean {
             return all;
         }
         try {
-            List<Result> list = scrape.scrapeOverStock(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
+            if(driver == null){
+                initialize();
+            }
+            List<Result> list = scrape.scrapeOverStock(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin(), driver);
             repo.saveAll(list);
             return list;
         } catch (InterruptedException e) {
@@ -80,7 +115,10 @@ public class Scraper implements InitializingBean {
             return all;
         }
         try {
-            List<Result> list = scrape.scrapeBedBath(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
+            if(driver == null){
+                initialize();
+            }
+            List<Result> list = scrape.scrapeBedBath(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin(), driver);
             repo.saveAll(list);
             return list;
         } catch (InterruptedException e) {
@@ -99,7 +137,10 @@ public class Scraper implements InitializingBean {
             return all;
         }
         try {
-            List<Result> list = scrape.scrapeWalmart(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin());
+            if(driver == null){
+                initialize();
+            }
+            List<Result> list = scrape.scrapeWalmart(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin(), driver);
             repo.saveAll(list);
             return list;
         } catch (InterruptedException e) {
@@ -113,12 +154,19 @@ public class Scraper implements InitializingBean {
     private String scrapeAmazonPrice(@RequestBody Item item) {
         Scrape scrape = new Scrape();
 
-        try {
-            return scrape.findAmasonLink(item.getAsin());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+////            return scrape.findAmasonLink(item.getAsin());
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         return null;
+    }
+
+    @RequestMapping(value = {"/scrape/excel/status"}, method = RequestMethod.GET)
+    @ResponseBody
+    private String excelStatus() {
+        System.out.println("STATUS METHOD HIT");
+        return storageService.currentProduct;
     }
 
     public void saveSkippedItems(SkippedProducts products) {

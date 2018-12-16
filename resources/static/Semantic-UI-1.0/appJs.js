@@ -1,10 +1,15 @@
+
+
+
 var scrape = {
 
     setAmazonInfo: function () {
         var link = $.session.get("LINK");
         var price = $.session.get("PRICE");
         var image = $.session.get("IMAGE");
-        document.getElementById("link").innerText = "Amazon Link - " + link;
+        alert(link);
+        document.getElementById("link").innerText = " - " + link;
+        $("#link").attr("href", link);
         document.getElementById("price").innerText = "Amazon Price - " + price;
         var t = $.session.get("IMAGE");
 
@@ -38,7 +43,7 @@ var scrape = {
                 } else {
                     for (var i = 0; i < data.length; i++) {
                         $('#homedepot').append('<tr>\n\
-                                    <td style="font-size: x-small;font-weight: bold;">' + data[i].productlink + '</td>\n\
+                                    <td style="font-size: x-small;font-weight: bold;"><a href="' + data[i].productlink + '">' + data[i].productlink + '</a></td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].vendorprice + '</td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].shippingcost + '</td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].cogs + '</td>\n\
@@ -48,8 +53,9 @@ var scrape = {
                                     </tr>');
 
                     }
-                    scrape.scrapeOverStock();
+
                 }
+                scrape.scrapeOverStock();
             },
             error: function (jqXHR, textStatus, errorThrown) {
 
@@ -86,7 +92,7 @@ var scrape = {
                 } else {
                     for (var i = 0; i < data.length; i++) {
                         $('#overstock').append('<tr>\n\
-                                    <td style="font-size: x-small;font-weight: bold;">' + data[i].productlink + '</td>\n\
+                                    <td style="font-size: x-small;font-weight: bold;"><a href="' + data[i].productlink + '">' + data[i].productlink + '</a></td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].vendorprice + '</td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].shippingcost + '</td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].cogs + '</td>\n\
@@ -96,8 +102,9 @@ var scrape = {
                                     </tr>');
 
                     }
-                    scrape.scrapeBedBath();
+
                 }
+                scrape.scrapeBedBath();
             },
             error: function (jqXHR, textStatus, errorThrown) {
 
@@ -134,7 +141,7 @@ var scrape = {
                 } else {
                     for (var i = 0; i < data.length; i++) {
                         $('#bedbat').append('<tr>\n\
-                                    <td style="font-size: x-small;font-weight: bold;">' + data[i].productlink + '</td>\n\
+                                    <td style="font-size: x-small;font-weight: bold;"><a href="' + data[i].productlink + '">' + data[i].productlink + '</a></td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].vendorprice + '</td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].shippingcost + '</td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].cogs + '</td>\n\
@@ -145,7 +152,7 @@ var scrape = {
 
                     }
                 }
-                // scrape.scrapeWalMart();
+                scrape.scrapeWalMart();
             },
             error: function (jqXHR, textStatus, errorThrown) {
 
@@ -162,7 +169,7 @@ var scrape = {
         e["name"] = $.session.get("name");
         e["price"] = $.session.get("PRICE");
         e["image"] = $.session.get("IMAGE");
-        
+
         var d = JSON.stringify(e);
         console.log("HO: " + d);
 
@@ -182,7 +189,7 @@ var scrape = {
                 } else {
                     for (var i = 0; i < data.length; i++) {
                         $('#walmart').append('<tr>\n\
-                                    <td style="font-size: x-small;font-weight: bold;">' + data[i].productlink + '</td>\n\
+                                    <td style="font-size: x-small;font-weight: bold;"><a href="' + data[i].productlink + '">' + data[i].productlink + '</a></td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].vendorprice + '</td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].shippingcost + '</td>\n\
                                     <td style="font-size: x-small;font-weight: bold;text-align: center">' + data[i].cogs + '</td>\n\
