@@ -154,7 +154,6 @@ public class Scrape implements InitializingBean {
         try {
             while (true) {
                 try {
-                    driver.navigate().refresh();
                     driver.get("https://www.walmart.com/");
                 } catch (NullPointerException g) {
                     driver.navigate().refresh();
@@ -290,8 +289,6 @@ public class Scrape implements InitializingBean {
                 break;
 
             }
-//            driver.quit();
-//            driver.close();
             return res;
         } catch (Exception t) {
             t.printStackTrace();
@@ -320,7 +317,6 @@ public class Scrape implements InitializingBean {
 
             while (true) {
                 try {
-                    driver.navigate().refresh();
                     driver.get("https://www.bedbathandbeyond.com/");
                 } catch (NullPointerException g) {
                     driver.navigate().refresh();
@@ -484,7 +480,6 @@ public class Scrape implements InitializingBean {
         boolean firstAttempt = true;
         try {
             try {
-                driver.navigate().refresh();
                 driver.get("https://www.overstock.com/");
             } catch (NullPointerException g) {
                 driver.navigate().refresh();
@@ -641,7 +636,6 @@ public class Scrape implements InitializingBean {
         List<Result> res = new ArrayList<>();
         boolean firstAttempt = true;
         try {
-            driver.navigate().refresh();
             driver.get("https://www.homedepot.com/");
             Thread.sleep(5000);
             calculations calculations = new calculations();
@@ -807,12 +801,9 @@ public class Scrape implements InitializingBean {
                     }
 
                     item = item.substring(0, item.lastIndexOf(" "));
-                    System.out.println("SEARCHING ITEM = " + item);
-//                    break;                                                                                          ========================================== HERE
                     return res;
                 }
             }
-            System.out.println(res.size() + "|||||||||||||||||||||||");
             return res;
         } catch (Exception t) {
             t.printStackTrace();
