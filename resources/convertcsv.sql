@@ -9,14 +9,15 @@ CREATE TABLE items(
   ,FIELD8   VARCHAR(258)
   ,FIELD9   VARCHAR(258)
 );
+
 INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (1,21401,'4875261772','Red brick network "Maizuru Yokohama" story ISBN: 4875261772 (2000) [Japanese Import]',NULL,'ADD',NULL,NULL,NULL);
 INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (2,21401,'B00EEZCFZU','Tri-Mountain Men''s DuPont Teflon Stain-Resistant Dress Shirt. 748 Retro','$35.46','ADD',NULL,NULL,NULL);
 INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (3,399100114,'B000HHNZKS','Screw Eye',NULL,'ADD',NULL,NULL,NULL);
 INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (4,399104167,'B000HHM7V6','Swivel Eye Bolt Snap, 1"','$11.98','ADD',NULL,NULL,NULL);
 INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (5,399104228,'B007OUG3LE','SNAP SWIVEL SB 5/8IN 225 WL','$9.48','ADD',NULL,NULL,NULL);
 INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (6,399108189,'B007OUGERC','Qwikee Gate Latch for Livestock Extra Gate Protection','$15.99','ADD',NULL,NULL,NULL);
-INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (7,399111448,'B007OUGO54','Weaver Leather Track Halter','$63.05','ADD',NULL,NULL,NULL);
-INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (8,399111448,'B005JES72K','Weaver Leather Track Halter','$43.32','ADD',NULL,NULL,NULL);
+INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (7,399111448,'B007OUGO54','weaver leather track holder','$63.05','ADD',NULL,NULL,NULL);
+INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (8,399111448,'B005JES72K','weaver leather track holder','$43.32','ADD',NULL,NULL,NULL);
 INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (9,399111509,'B005JES9FK','Weaver Leather HLTR,RIVETED,3/4" YEARLING','$29.50','ADD',NULL,NULL,NULL);
 INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (10,399113954,'B005FYNY8Q','Weaver Leather Single-Ply Horse Lead with Chain','$39.67','ADD',NULL,NULL,NULL);
 INSERT INTO items(id,UPC_Code,ASIN,Title,Price,status,FIELD7,FIELD8,FIELD9) VALUES (11,399115477,'B00GRSS2D6','Weaver Leather 30-1100 Chicago Screw Pack For Horse Harness, Floral Nickel Brass, 1/4 & 3/8-In, 6-Pk. - Quantity 100',NULL,'ADD',NULL,NULL,NULL);

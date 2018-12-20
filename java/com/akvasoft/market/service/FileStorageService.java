@@ -82,7 +82,7 @@ public class FileStorageService {
     }
 
     public String storeFile(MultipartFile file) {
-        System.out.println(file.getName()+"========================");
+        System.out.println(file.getName() + "========================");
         // Normalize file name
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 

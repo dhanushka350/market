@@ -48,34 +48,33 @@ public class Scrape implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-//        for (int i = 0; i < 7; i++) {
-//            new Thread(() -> {
-//
-//                System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
-//
-//                FirefoxOptions options = new FirefoxOptions();
-//                options.setHeadless(true);
-//
-//                FirefoxDriver driver = new FirefoxDriver(options);
-//                System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "true");
-//                System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
-//                try {
-//                    Thread.sleep(3000);
-//                    driver.navigate().refresh();
-//                    Thread.sleep(3000);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//                boolean b = true;
-//                while (b) {
-//                    try {
-//                        b = doM(driver);
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }).start();
-//        }
+        for (int i = 0; i < 7; i++) {
+            new Thread(() -> {
+
+                System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
+                FirefoxOptions options = new FirefoxOptions();
+                options.setHeadless(true);
+
+                FirefoxDriver driver = new FirefoxDriver(options);
+                System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "true");
+                System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null");
+                try {
+                    Thread.sleep(3000);
+                    driver.navigate().refresh();
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                boolean b = true;
+                while (b) {
+                    try {
+                        b = doM(driver);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
 
     }
 
@@ -155,6 +154,7 @@ public class Scrape implements InitializingBean {
         try {
             while (true) {
                 try {
+                    driver.navigate().refresh();
                     driver.get("https://www.walmart.com/");
                 } catch (NullPointerException g) {
                     driver.navigate().refresh();
@@ -319,14 +319,15 @@ public class Scrape implements InitializingBean {
             boolean al2 = false;
 
             while (true) {
-
                 try {
+                    driver.navigate().refresh();
                     driver.get("https://www.bedbathandbeyond.com/");
                 } catch (NullPointerException g) {
                     driver.navigate().refresh();
                     Thread.sleep(5000);
                     driver.get("https://www.bedbathandbeyond.com/");
                 }
+
 
                 Thread.sleep(3000);
                 try {
@@ -346,6 +347,7 @@ public class Scrape implements InitializingBean {
                     }
                 }
             }
+
 
             try {
                 JavascriptExecutor jse = driver;
@@ -367,163 +369,108 @@ public class Scrape implements InitializingBean {
                         jse.executeScript("arguments[0].click();", element);
                         System.out.println(element.getAttribute("innerText"));
                         driver.findElementByCssSelector("#updateCountryCrncy").click();
-//                            break;
                     }
                 }
-
             } catch (Exception v) {
-//                v.printStackTrace();
-//                    break;
+
             }
 
 
             int search_count = 2;
-            boolean end = false;
-            while (!end) {
-                while (true) {
-                    try {
-                        WebElement searchBox = driver.findElementByXPath("//*[@id=\"searchInput\"]");
-                        searchBox.clear();
-                        search_count++;
-                        if (search_count == 0) {
-                            searchBox.sendKeys(code);
-                            searchBox.sendKeys(Keys.ENTER);
-                            System.out.println("SEARCH USING UPC CODE BED BAT");
+            boolean run = true;
 
-                        } else if (search_count == 1) {
-                            searchBox.sendKeys(asin);
-                            searchBox.sendKeys(Keys.ENTER);
-                            System.out.println("SEARCH USING ASIN CODE BED BAT");
-
-                        } else {
-                            searchBox.sendKeys(item);
-                            searchBox.sendKeys(Keys.ENTER);
-
-                        }
-
-                    } catch (ElementNotInteractableException e) {
-
-                        try {
-                            driver.findElementByXPath("/html/body/div[13]/div/div/div[2]/div/button").click();
-                            driver.findElementByXPath("//*[@id=\"closeButton\"]").click();
-                        } catch (Exception f) {
-                            try {
-                                WebElement addCloseOne = driver.findElementByCssSelector(".rclCloseBtnWrapper");
-                                addCloseOne.click();
-                                WebElement addCloseTwo = driver.findElementByXPath("//*[@id=\"closeButton\"]");
-                                addCloseTwo.click();
-                                System.out.println("ALERT EXCEPTION");
-                            } catch (Exception v) {
-                            }
-                        }
-                        continue;
-                    }
-
-                    Thread.sleep(5000);
-                    System.out.println(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"));
-                    if ("NO SEARCH RESULTS FOR".equalsIgnoreCase(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"))) {
-                        try {
-
-                            if (item.split(" ").length < 2) {
-                                break;
-                            }
-
-                            if (search_count > 1) {
-                                if (firstAttempt) {
-                                    firstAttempt = false;
-                                    continue;
-                                }
-                                item = item.substring(0, item.lastIndexOf(" "));
-//                    break;                                            ========================================== HERE
-                                end = true;
-                                break;
-                            }
-
-                        } catch (StringIndexOutOfBoundsException f) {
-                            return res;
-                        }
-                        System.out.println("SEARCHING ITEM = " + item);
-                        continue;
-                    }
-                }
-
-                int count = 1;
-                List<String> list = new ArrayList<>();
+            while (run) {
                 try {
-                    for (WebElement product : driver.findElementByCssSelector(".mt0").findElements(By.xpath("./*"))) {
-                        String url = product.findElement(By.tagName("article")).findElement(By.tagName("a")).getAttribute("href");
-                        list.add(url);
-                        if (count > 4) {
-                            break;
-                        }
-                        count++;
-                    }
-                } catch (Exception d) {
-                    d.printStackTrace();
-                    if (search_count > 1) {
-                        if (item.split(" ").length < 2) {
-                            break;
-                        }
-                        if (!firstAttempt) {
-                            item = item.substring(0, item.lastIndexOf(" "));
-//                    break;                                                                                          ========================================== HERE
-                            end = true;
-                            break;
-                        }
-                        System.out.println("SEARCHING ITEM = " + item);
+                    WebElement searchBox = driver.findElementByXPath("//*[@id=\"searchInput\"]");
+                    searchBox.clear();
+                    search_count++;
+                    if (search_count == 0) {
+                        searchBox.sendKeys(code);
+                        searchBox.sendKeys(Keys.ENTER);
+                        System.out.println("SEARCH USING UPC CODE BED BAT");
 
+                    } else if (search_count == 1) {
+                        searchBox.sendKeys(asin);
+                        searchBox.sendKeys(Keys.ENTER);
+                        System.out.println("SEARCH USING ASIN CODE BED BAT");
+
+                    } else {
+                        searchBox.sendKeys(item);
+                        searchBox.sendKeys(Keys.ENTER);
+
+                    }
+
+                } catch (ElementNotInteractableException e) {
+                    try {
+                        driver.findElementByXPath("/html/body/div[13]/div/div/div[2]/div/button").click();
+                        driver.findElementByXPath("//*[@id=\"closeButton\"]").click();
+                    } catch (Exception f) {
+                        try {
+                            WebElement addCloseOne = driver.findElementByCssSelector(".rclCloseBtnWrapper");
+                            addCloseOne.click();
+                            WebElement addCloseTwo = driver.findElementByXPath("//*[@id=\"closeButton\"]");
+                            addCloseTwo.click();
+                            System.out.println("ALERT EXCEPTION");
+                        } catch (Exception v) {
+                        }
                     }
                     continue;
                 }
-                for (String link : list) {
-                    try {
-                        driver.get(link);
-                        Thread.sleep(2000);
-                        product_link = link;
-                        vendor_price = "$ " + driver.findElementByCssSelector(".ProductDetailsLayout_7n4K2X > div:nth-child(3) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > span:nth-child(1)").getAttribute("innerText").split(" ")[1];
-                        shipping_cost = "$ " + calculations.getShippingCost("bedbathandbeyond", vendor_price);
-                        image = driver.findElementByXPath("/html/body/div[2]/div[2]/div[3]/main/div/div[1]/div/div/div[1]/div[1]/div/div[1]/div[1]/div[1]/div[2]/div/div/div/a[1]/div").findElement(By.tagName("img")).getAttribute("src");
-                        cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
-                        profit = "$ " + calculations.getProfit(amasonPrice, cogs);
-                        margin = "$ " + calculations.getMargin(profit, amasonPrice);
-                        roi = "$ " + calculations.getROI(profit, vendor_price, shipping_cost);
 
-                        result = new Result();
-                        result.setCogs(cogs);
-                        result.setMargin(margin);
-                        result.setImageLink(image);
-                        result.setProductlink(product_link);
-                        result.setProfit(profit);
-                        result.setRoi(roi);
-                        result.setAsin(asin);
-                        result.setShippingcost(shipping_cost);
-                        result.setVendorprice(vendor_price);
-                        result.setCode(code);
-                        result.setWebsite("https://www.bedbathandbeyond.com/");
-                        result.setDate(dateFormat.format(date));
-                        result.setAmazonLink("https://www.amazon.com/dp/" + asin);
-                        res.add(result);
-                        System.out.println(product_link);
-                        System.out.println(vendor_price);
-                        System.out.println(image + " BET=D =================================");
-                        System.out.println(shipping_cost);
-                        System.out.println(cogs);
-                        System.out.println(profit);
-                        System.out.println(margin);
-                        System.out.println(roi);
-                    } catch (NoSuchElementException c) {
-                        c.printStackTrace();
-                        continue;
-                    }
 
+                Thread.sleep(5000);
+                System.out.println(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText") + "===============");
+                if ("NO SEARCH RESULTS FOR".equalsIgnoreCase(driver.findElementByCssSelector(".SearchResultsFound_11h7WU").getAttribute("innerText"))) {
+                    System.out.println("NO ITEMS ====");
+                    break;
+                } else {
+                    run = false;
                 }
-
-
-                break;
             }
-            return res;
-        } catch (
-                Exception t) {
+
+            int count = 1;
+            try {
+                for (WebElement product : driver.findElementByCssSelector(".mt0").findElements(By.xpath("./*"))) {
+
+                    product_link = product.findElement(By.tagName("article")).findElement(By.tagName("a")).getAttribute("href");
+                    image = product.findElement(By.tagName("article")).findElement(By.tagName("a")).findElement(By.tagName("img")).getAttribute("src");
+                    vendor_price = product.findElement(By.tagName("article")).findElements(By.xpath("./*")).get(1).getAttribute("innerText");
+
+                    vendor_price = "$" + vendor_price.replaceAll("[^\\d.]", "");
+                    shipping_cost = "$ " + calculations.getShippingCost("bedbathandbeyond", vendor_price);
+                    cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
+                    profit = "$ " + calculations.getProfit(amasonPrice, cogs);
+                    margin = "$ " + calculations.getMargin(profit, amasonPrice);
+                    roi = "$ " + calculations.getROI(profit, vendor_price, shipping_cost);
+
+
+                    result = new Result();
+                    result.setCogs(cogs);
+                    result.setMargin(margin);
+                    result.setImageLink(image);
+                    result.setProductlink(product_link);
+                    result.setProfit(profit);
+                    result.setRoi(roi);
+                    result.setAsin(asin);
+                    result.setShippingcost(shipping_cost);
+                    result.setVendorprice(vendor_price);
+                    result.setCode(code);
+                    result.setWebsite("https://www.bedbathandbeyond.com/");
+                    result.setDate(dateFormat.format(date));
+                    result.setAmazonLink("https://www.amazon.com/dp/" + asin);
+                    res.add(result);
+
+                    if (count > 4) {
+                        return res;
+                    }
+                    count++;
+                }
+                return res;
+            } catch (Exception d) {
+                d.printStackTrace();
+                return res;
+            }
+        } catch (Exception t) {
             t.printStackTrace();
             return res;
         }
@@ -537,6 +484,7 @@ public class Scrape implements InitializingBean {
         boolean firstAttempt = true;
         try {
             try {
+                driver.navigate().refresh();
                 driver.get("https://www.overstock.com/");
             } catch (NullPointerException g) {
                 driver.navigate().refresh();
@@ -693,7 +641,7 @@ public class Scrape implements InitializingBean {
         List<Result> res = new ArrayList<>();
         boolean firstAttempt = true;
         try {
-
+            driver.navigate().refresh();
             driver.get("https://www.homedepot.com/");
             Thread.sleep(5000);
             calculations calculations = new calculations();
@@ -737,7 +685,7 @@ public class Scrape implements InitializingBean {
                         List<WebElement> prices = price.findElements(By.xpath("./*"));
                         vendor_price = prices.get(0).getAttribute("innerText") + prices.get(1).getAttribute("innerText") + "." + prices.get(2).getAttribute("innerText");
                         product_link = driver.getCurrentUrl();
-                        image = driver.findElementByXPath("//*[@id=\"mediaPlayer\"]").findElement(By.tagName("img")).getAttribute("src");
+                        image = driver.findElementById("mainImage").getAttribute("src");
                         shipping_cost = "$ " + calculations.getShippingCost("Home Depot", vendor_price);
                         cogs = "$ " + calculations.getCOGS(vendor_price, shipping_cost, amasonPrice);
                         profit = "$ " + calculations.getProfit(amasonPrice, cogs);
@@ -774,7 +722,7 @@ public class Scrape implements InitializingBean {
                         System.err.println("========================================");
 
                     } catch (NoSuchElementException r) {
-                        // collect five product urls..
+                        r.printStackTrace();
                         WebElement list = null;
                         try {
                             list = driver.findElementByXPath("/html/body/div[1]/div[2]/div/div[1]/div[5]/div[2]/div[3]/div[1]/div[1]/div/div");

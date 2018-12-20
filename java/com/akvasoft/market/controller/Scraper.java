@@ -45,7 +45,7 @@ public class Scraper implements InitializingBean {
     public String initialize() throws InterruptedException {
         System.setProperty("webdriver.gecko.driver", "/var/lib/tomcat8/geckodriver");
         FirefoxOptions options = new FirefoxOptions();
-        options.setHeadless(true);
+        options.setHeadless(false);
         driver = new FirefoxDriver(options);
 
         for (int i = 0; i < url.length - 1; i++) {
@@ -93,7 +93,7 @@ public class Scraper implements InitializingBean {
             return all;
         }
         try {
-            if(driver == null){
+            if (driver == null) {
                 initialize();
             }
             List<Result> list = scrape.scrapeOverStock(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin(), driver);
@@ -115,7 +115,7 @@ public class Scraper implements InitializingBean {
             return all;
         }
         try {
-            if(driver == null){
+            if (driver == null) {
                 initialize();
             }
             List<Result> list = scrape.scrapeBedBath(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin(), driver);
@@ -137,7 +137,7 @@ public class Scraper implements InitializingBean {
             return all;
         }
         try {
-            if(driver == null){
+            if (driver == null) {
                 initialize();
             }
             List<Result> list = scrape.scrapeWalmart(item.getName(), item.getPrice(), item.getCode(), item.getImage(), item.getAsin(), driver);
@@ -165,7 +165,6 @@ public class Scraper implements InitializingBean {
     @RequestMapping(value = {"/scrape/excel/status"}, method = RequestMethod.GET)
     @ResponseBody
     private String excelStatus() {
-        System.out.println("STATUS METHOD HIT");
         return storageService.currentProduct;
     }
 
